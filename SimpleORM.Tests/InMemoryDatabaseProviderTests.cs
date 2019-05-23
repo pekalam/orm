@@ -9,11 +9,12 @@ using SimpleORM.Tests.TestUtil;
 
 namespace SimpleORM.Tests
 {
+    [Entity]
     class Movie
     {
         [PrimaryKey]
         public int Id { get; set; }
-        [ForeignKey]
+        [ForeignKey("", "")]
         public string Title { get; set; }
     }
 

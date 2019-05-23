@@ -12,7 +12,7 @@ namespace SimpleORM.Tests.TestUtil
         {
             var entityAttr = EntityFieldAttributeReader.ReadEntityFieldAttributes(obj);
             var entityTrackedFields = EntityFieldAttributeReader.ReadEntityTrackedFields(obj);
-            return new TableMetadata("Test", entityAttr, entityTrackedFields);
+            return new TableMetadata("Test", entityAttr, entityTrackedFields, typeof(string));
         }
     }
 }

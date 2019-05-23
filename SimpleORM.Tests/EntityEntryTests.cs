@@ -11,20 +11,22 @@ namespace SimpleORM.Tests
     [TestFixture]
     public class EntityEntryTests
     {
+        [Entity]
         class TestEntity1
         {
             [PrimaryKey]
             public int Id { get; set; }
-            [ForeignKey]
+            [ForeignKey("", "")]
             public int F2 { get; set; }
             [NotTracked]
             public string Name { get; set; }
         }
 
+        [Entity]
         class TestEntity2
         {
             [PrimaryKey]
-            [ForeignKey]
+            [ForeignKey("", "")]
             public int Id { get; set; }
             [NotTracked]
             public string Name { get; set; }

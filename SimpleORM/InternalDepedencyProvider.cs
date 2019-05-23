@@ -14,10 +14,14 @@ namespace SimpleORM
         public IStateManager StateManager { get; set; }
     }
 
+
     public static class InternalDepedencyProvider
     {
         private static UnityContainer _container;
 
+        /// <summary>
+        /// Konfiguracja kontenera IoC.
+        /// </summary>
         static InternalDepedencyProvider()
         {
             _container = new UnityContainer();
@@ -25,6 +29,9 @@ namespace SimpleORM
             _container.RegisterType<IDatabaseProvider, InMemoryDatabaseProvider>();
         }
 
+        /// <summary>
+        /// Zależności klasy Database
+        /// </summary>
         public static IDatabaseDepedencies DatabaseDepedencies
         {
             get

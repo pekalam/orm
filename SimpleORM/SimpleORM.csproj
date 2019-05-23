@@ -51,6 +51,9 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Data.SqlClient, Version=4.5.0.1, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Data.SqlClient.4.6.1\lib\net461\System.Data.SqlClient.dll</HintPath>
+    </Reference>
     <Reference Include="System.Runtime.CompilerServices.Unsafe, Version=4.0.4.1, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>..\packages\System.Runtime.CompilerServices.Unsafe.4.5.2\lib\netstandard2.0\System.Runtime.CompilerServices.Unsafe.dll</HintPath>
     </Reference>
@@ -69,11 +72,14 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Attributes\AutoIncrement.cs" />
+    <Compile Include="Attributes\Entity.cs" />
+    <Compile Include="Attributes\IEntityFieldAttribute.cs" />
     <Compile Include="Database.cs" />
     <Compile Include="EntityEntry.cs" />
     <Compile Include="EntityFieldAttributeReader.cs" />
     <Compile Include="EntityState.cs" />
     <Compile Include="Attributes\ForeignKey.cs" />
+    <Compile Include="Providers\DatabaseProviders.cs" />
     <Compile Include="Providers\IDatabaseProvider.cs" />
     <Compile Include="Providers\InMemory\InMemoryDatabaseProvider.cs" />
     <Compile Include="InternalDepedencyProvider.cs" />
@@ -81,6 +87,7 @@
     <Compile Include="Attributes\NotTracked.cs" />
     <Compile Include="Attributes\PrimaryKey.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Providers\MsSql\MsSqlSchemaBuilder.cs" />
     <Compile Include="Providers\MsSql\MsSqlTableBuilder.cs" />
     <Compile Include="StateManager.cs" />
     <Compile Include="Table.cs" />

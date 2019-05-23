@@ -20,6 +20,9 @@ namespace SimpleORM
         void SaveChanges();
     }
 
+    /// <summary>
+    /// Zarządza stanem wszystkich encji które zostały powiązane z ORM.
+    /// </summary>
     public class StateManager : IStateManager
     {
         private Dictionary<object, EntityEntry> _entityEntries = new Dictionary<object, EntityEntry>();

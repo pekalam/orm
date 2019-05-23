@@ -6,10 +6,10 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using SimpleORM.Providers;
-using SimpleORM.Providers.InMemory;
 
 namespace SimpleORM
 {
+
     public interface IDatabase
     {
         TableMetadata GetTableMetadataForEntity(object entity);
@@ -20,17 +20,21 @@ namespace SimpleORM
         public IDatabaseProvider DatabaseProvider { get; set; }
     }
 
-    public class DatabaseOptionsBuilder
-    {
-    }
-
+    /// <summary>
+    /// Baza danych zarządzana przez ORM. Podstawowa klasa SimpleORM
+    /// </summary>
     public class Database : IDatabase
     {
         private IDatabaseDepedencies _databaseDepedencies;
 
         private IDatabaseProvider _provider;
 
-        private Dictionary<Type, TableMetadata> _typeTableMetadatas = new Dictionary<Type, TableMetadata>();
+        private string _databaseName;
+
+        /// <summary>
+        /// Pary typ POCO przechowywany w tabeli - metadane tabeli
+        /// </summary>
+        private Dictionary<Type, TableMetadata> _typeToTableMetadata = new Dictionary<Type, TableMetadata>();
 
         public Database()
         {
@@ -44,6 +48,7 @@ namespace SimpleORM
 
         private void _Init(DatabaseOptions options)
         {
+            _databaseName = GetType().Name.ToString();
             InitTables();
             _databaseDepedencies = InternalDepedencyProvider.DatabaseDepedencies;
             _databaseDepedencies.StateManager.Database = this;
@@ -52,8 +57,12 @@ namespace SimpleORM
             _provider.Connect();
         }
 
+        /// <summary>
+        /// Inicjalizacja podanych tabel przypisanych przez użytkownika do bazy
+        /// </summary>
         private void InitTables()
         {
+            int tables = 0;
             Type thisType = this.GetType();
             foreach (var propertyInfo in thisType.GetProperties())
             {
@@ -70,12 +79,23 @@ namespace SimpleORM
                         propertyInfo.SetValue(this, tableInstance);
                         var tableMetadata = (TableMetadata)tableInstance.GetType().GetProperty("Metadata").GetValue(tableInstance);
                         
-                        _typeTableMetadatas.Add(tableEntityType, tableMetadata);
+                        _typeToTableMetadata.Add(tableEntityType, tableMetadata);
+
+                        tables++;
                     }
                 }
             }
+
+            if (tables == 0)
+            {
+                throw new Exception("Baza danych nie zawiera tabel");
+            }
         }
 
+        /// <summary>
+        /// Zapisuje zmiany w bazie danych
+        /// </summary>
+        /// <returns> Ilość zapisanych obiektów </returns>
         public int SaveChanges()
         {
             var entriesToSave = StateManager.GetEntriesToSave();
@@ -98,18 +118,28 @@ namespace SimpleORM
             return entriesToSave.Count;
         }
 
+        /// <summary>
+        /// Zwraca metadane tabeli dla podanej encji (POCO)
+        /// </summary>
+        /// <param name="entity"></param>
+        /// <returns> Metadane tabeli powiazanej z encją </returns>
         public TableMetadata GetTableMetadataForEntity(object entity)
         {
-            if(!_typeTableMetadatas.ContainsKey(entity.GetType()))
+            if(!_typeToTableMetadata.ContainsKey(entity.GetType()))
                 throw new Exception();
 
-            return _typeTableMetadatas[entity.GetType()];
+            return _typeToTableMetadata[entity.GetType()];
         }
 
+        /// <summary>
+        /// Tworzy bazę danych, schemat i tabele jeśli nie zostały one wcześniej utworzone
+        /// </summary>
+        /// <returns> Czy schemat lub tabele zostały utworzone </returns>
         public bool EnsureCreated()
         {
             bool created = true;
-            foreach (var tableMetadata in _typeTableMetadatas.Values)
+
+            foreach (var tableMetadata in _typeToTableMetadata.Values)
             {
                 if (!_provider.IsTableCreated(tableMetadata))
                 {

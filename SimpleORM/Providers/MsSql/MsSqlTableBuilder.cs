@@ -24,44 +24,53 @@ namespace SimpleORM.Providers.MsSql
 
     public class MsSqlTableBuilder
     {
-        public string SQL { get; private set; } = "";
+        private TableMetadata _tableMetadata;
 
         public MsSqlTableBuilder(TableMetadata tableMetadata)
         {
+            _tableMetadata = tableMetadata;
+        }
+
+        public string Build()
+        {
             var s = new StringBuilder();
-            s.AppendLine($"CREATE TABLE [{tableMetadata.Name}] (");
-            
-            foreach (var name in tableMetadata.EntityPropertyNameToType.Keys)
+            s.AppendLine($"CREATE TABLE [{_tableMetadata.Name}] (");
+
+            foreach (var name in _tableMetadata.EntityPropertyNameToType.Keys)
             {
-                
                 s.Append("  ");
                 s.Append($"[{name}] ");
                 // TODO: not scalar
-                var typeStr = MsSqlTypeMapping.ScalarTypeMap[tableMetadata.EntityPropertyNameToType[name]];
+                var typeStr = MsSqlTypeMapping.ScalarTypeMap[_tableMetadata.EntityPropertyNameToType[name]];
                 // TODO: option
                 s.Append($"{typeStr} ");
 
-                if (tableMetadata.EntityPropertyAttributes.ContainsKey(name))
+                if (_tableMetadata.EntityPropertyAttributes.ContainsKey(name))
                 {
-                    var attrs = tableMetadata.EntityPropertyAttributes[name];
+                    var attrs = _tableMetadata.EntityPropertyAttributes[name];
                     if (attrs.Count > 0)
                     {
                         foreach (var entityFieldAttribute in attrs)
                         {
+                            try
+                            {
+                                entityFieldAttribute.Validate(_tableMetadata.EntityType, _tableMetadata.EntityPropertyNameToType[name], name);
+                            }
+                            catch (Exception)
+                            {
+                                throw;
+                            }
                             var attrStr = MsSqlTypeMapping.AttributeMap[entityFieldAttribute.GetType()];
                             s.Append($"{attrStr} ");
                         }
                     }
                 }
-                
-
                 s.AppendLine("NOT NULL,");
-;            }
+            }
 
             s.AppendLine(")");
             s.AppendLine("GO");
-
-            SQL = s.ToString();
+            return s.ToString();
         }
     }
 }

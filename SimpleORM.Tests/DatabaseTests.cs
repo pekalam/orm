@@ -10,11 +10,12 @@ namespace SimpleORM.Tests
     [TestFixture]
     public class DatabaseTests
     {
+        [Entity]
         class Movie
         {
             [PrimaryKey]
             public int Id { get; set; }
-            [ForeignKey]
+            [ForeignKey("", "")]
             public string Title { get; set; }
         }
 
@@ -34,10 +35,17 @@ namespace SimpleORM.Tests
             Assert.IsNotNull(db.Movies);
         }
 
+        class NullDb : Database
+        {
+
+        }
+
         [Test]
         public void Database_constructor_when_table_without_get_set_throws()
         {
-            Assert.IsTrue(false);
+            var ex = Assert.Throws<Exception>(() => new NullDb());
+
+            Assert.IsNotNull(ex);
         }
 
         [Test]

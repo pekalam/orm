@@ -27,7 +27,7 @@ namespace SimpleORM.Tests.MsSqlProviderTests
         {
             ["Id"] = typeof(int),
             ["Name"] = typeof(string)
-        });
+        }, typeof(TestEntity));
 
         static TableMetadata stub2 = new TableMetadata("TestTable", new Dictionary<string, List<IEntityFieldAttribute>>()
         {
@@ -36,7 +36,7 @@ namespace SimpleORM.Tests.MsSqlProviderTests
         {
             ["Id"] = typeof(int),
             ["Name"] = typeof(string)
-        });
+        }, typeof(TestEntity));
 
         static TableMetadata GetStub(string name)
         {
@@ -56,7 +56,7 @@ namespace SimpleORM.Tests.MsSqlProviderTests
         public void TableBuilder_from_entity_returns_valid_sql(string name)
         {
             TableMetadata stubTableMetadata = GetStub(name);
-            var sql = new MsSqlTableBuilder(stubTableMetadata).SQL;
+            var sql = new MsSqlTableBuilder(stubTableMetadata).Build();
 
             TestContext.WriteLine(sql);
         }

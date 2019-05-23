@@ -32,9 +32,34 @@ namespace SimpleORM.Providers.InMemory
             return;
         }
 
+        public void DropDatabase(string name)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public void CreateSchema(string name)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public void CreateSchema(string dbName, string name)
+        {
+            throw new System.NotImplementedException();
+        }
+
         public bool IsTableCreated(TableMetadata tableMetadata)
         {
             return true;
+        }
+
+        public bool IsDatabaseCreated(string name)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public bool IsSchemaCreated(string name)
+        {
+            throw new System.NotImplementedException();
         }
 
         public void Connect()

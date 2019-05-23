@@ -8,17 +8,58 @@ using SimpleORM.Attributes;
 
 namespace SimpleORM
 {
+    /// <summary>
+    /// Odczytuje
+    /// </summary>
     public static class EntityFieldAttributeReader
     {
+        public static bool IsSimpleType(Type type)
+        {
+            return
+                type.IsPrimitive ||
+                new Type[]
+                {
+                    typeof(Enum),
+                    typeof(String),
+                    typeof(Decimal),
+                    typeof(DateTime),
+                    typeof(DateTimeOffset),
+                    typeof(TimeSpan),
+                    typeof(Guid)
+                }.Contains(type) ||
+                Convert.GetTypeCode(type) != TypeCode.Object;
+        }
+
+        public static bool IsSimpleORMEntity(Type type) => type.GetCustomAttributes(typeof(Entity), false).Length == 1;
+
         public static Dictionary<string, List<IEntityFieldAttribute>> ReadEntityFieldAttributes(object obj) =>
             ReadEntityFieldAttributes(obj.GetType());
 
+        /// <summary>
+        /// Odczytuje atrybuty SimpleORM powiązane z encją
+        /// </summary>
+        /// <param name="objType">Typ encji</param>
+        /// <returns> Pary pole POCO - lista powiązanych atrybutów z polem </returns>
         public static Dictionary<string, List<IEntityFieldAttribute>> ReadEntityFieldAttributes(Type objType)
         {
             var propNameToAttribute = new Dictionary<string, List<IEntityFieldAttribute>>();
 
+            if (!IsSimpleORMEntity(objType))
+            {
+                throw new Exception($"Klasa {objType.Name} nie jest oznaczona atrybutem Entity");
+            }
+            //TODO: linq
             foreach (var property in objType.GetProperties())
             {
+                var propertyT = property.PropertyType;
+                if (IsSimpleORMEntity(propertyT))
+                {
+                    continue;
+                }
+                if (!IsSimpleType(propertyT))
+                {
+                    throw new Exception($"Typ {property.PropertyType.Name} nie jest obsługiwany");
+                }
                 var customAttributes = property.GetCustomAttributes<Attribute>();
                 foreach (var attribute in customAttributes)
                 {
@@ -37,13 +78,30 @@ namespace SimpleORM
         public static Dictionary<string, Type> ReadEntityTrackedFields(object obj) =>
             ReadEntityTrackedFields(obj.GetType());
 
-
+        /// <summary>
+        /// Odczytuje nazwy pól POCO które mogą być obserwowane przez ORM
+        /// </summary>
+        /// <param name="objType">Typ encji</param>
+        /// <returns>Pary nazwa pola - typ pola</returns>
         public static Dictionary<string, Type> ReadEntityTrackedFields(Type objType)
         {
             var trackedProperties = new Dictionary<string, Type>();
 
+            if (!IsSimpleORMEntity(objType))
+            {
+                throw new Exception($"Klasa {objType.Name} nie jest oznaczona atrybutem Entity");
+            }
             foreach (var property in objType.GetProperties())
             {
+                var propertyT = property.PropertyType;
+                if (IsSimpleORMEntity(propertyT))
+                {
+                    continue;
+                }
+                if (!IsSimpleType(propertyT))
+                {
+                    throw new Exception($"Typ {property.PropertyType.Name} nie jest obsługiwany");
+                }
                 var customAttributes = property.GetCustomAttribute<NotTracked>();
                 if(customAttributes == null)
                     trackedProperties.Add(property.Name, property.PropertyType);

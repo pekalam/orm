@@ -4,10 +4,12 @@ using System.Text;
 using Moq;
 using NUnit.Framework;
 using NUnit.Framework.Internal;
+using SimpleORM.Attributes;
 using SimpleORM.Tests.TestUtil;
 
 namespace SimpleORM.Tests
 {
+    [Entity]
     class TestEntity1
     {
         public string Name { get; set; }

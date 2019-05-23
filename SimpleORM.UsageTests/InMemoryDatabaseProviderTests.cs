@@ -42,9 +42,10 @@ namespace SimpleORM.UsageTests
         [Test]
         public void SaveChanges_saves_entites()
         {
-            var dbProv = CreateDatabase();
-            var db = dbProv.Item1;
-            var provider = dbProv.Item2;
+            var tuple = CreateDatabase();
+            var db = tuple.Item1;
+            var provider = tuple.Item2;
+            db.EnsureCreated();
             var entity1 = new Movie() {Id = 1, Title = "Title1"};
             var entity2 = new Movie() { Id = 2, Title = "Title2" };
 

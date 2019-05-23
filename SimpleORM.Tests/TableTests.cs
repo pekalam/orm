@@ -9,11 +9,12 @@ namespace SimpleORM.Tests
     [TestFixture]
     public class TableTests
     {
+        [Entity]
         class Movie
         {
             [PrimaryKey]
             public int Id { get; set; }
-            [ForeignKey]
+            [ForeignKey("", "")]
             public string Title { get; set; }
         }
 
