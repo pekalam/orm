@@ -11,11 +11,13 @@ namespace SimpleORM.Attributes
     {
         public string Target { get; }
         public string Referenced { get; }
+        public bool Ignore { get; }
 
-        public ForeignKey(string target, string referenced = "Id")
+        public ForeignKey(string target, string referenced = "Id", bool ignore = false)
         {
             Target = target;
             Referenced = referenced;
+            Ignore = ignore;
         }
 
         private void _CheckRecursiveReferences(Type entityType, Type referencedType)
@@ -72,6 +74,16 @@ namespace SimpleORM.Attributes
             }
 
             _CheckRecursiveReferences(enityType, targetType);
+        }
+
+        public Type ReadTargetType(Type entityType)
+        {
+            return entityType.GetProperty(Target).PropertyType;
+        }
+
+        public object ReadTargetValue(object entity)
+        {
+            return entity.GetType().GetProperty(Target).GetValue(entity);
         }
     }
 }

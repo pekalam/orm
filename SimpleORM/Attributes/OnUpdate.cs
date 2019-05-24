@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace SimpleORM.Attributes
 {
     [AttributeUsage(AttributeTargets.Property, AllowMultiple = false)]
-    class OnUpdate : Attribute, IEntityFieldAttribute
+    public class OnUpdate : Attribute, IEntityFieldAttribute
     {
         private string _onUpdate;
 

@@ -12,7 +12,7 @@ namespace SimpleORM.Providers
         bool Connected { get; }
         void InsertEntities(IReadOnlyList<EntityEntry> entries);
         void UpdateEntities(IReadOnlyList<EntityEntry> entries);
-        void CreateTable(TableMetadata tableMetadata, string schema);
+        void CreateTable(TableMetadata tableMetadata);
         void DeleteEntities(IReadOnlyList<EntityEntry> entries);
         void DropTable(TableMetadata tableMetadata);
         void CreateDatabase(string name);
@@ -21,7 +21,8 @@ namespace SimpleORM.Providers
         void DropSchema(string name);
         IDataReader RawSql(string sql);
         IDataReader Find(object primaryKey, TableMetadata tableMetadata);
-        bool IsTableCreated(TableMetadata tableMetadata, string schema);
+        IDataReader FindWhere(string field, object value, TableMetadata tableMetadata);
+        bool IsTableCreated(TableMetadata tableMetadata);
         bool IsDatabaseCreated(string name);
         bool IsSchemaCreated(string name);
         void Connect();

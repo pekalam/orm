@@ -60,6 +60,10 @@ namespace SimpleORM.Providers.MsSql
     public class MsSqlDatabaseProvider : IDatabaseProvider
     {
         private SqlConnection _dbConnection;
+        private MsSqlInsertBuilder _insertBuilder = new MsSqlInsertBuilder();
+        private MsSqlUpdateBuilder _updateBuilder = new MsSqlUpdateBuilder();
+        private MsSqlDeleteBuilder _deleteBuilder = new MsSqlDeleteBuilder();
+        private MsSqlTableBuilder _tableBuilder = new MsSqlTableBuilder();
 
         public MsSqlDatabaseProvider(string connectionString, string masterConnectionString)
         {
@@ -71,12 +75,30 @@ namespace SimpleORM.Providers.MsSql
 
         private void _CreateNewConnection(string connectionString)
         {
-            if (_dbConnection != null)
-            {
-                _dbConnection.Dispose();
-            }
+            _dbConnection?.Dispose();
             _dbConnection = new SqlConnection(connectionString);
             _dbConnection.Open();
+        }
+
+        private void _ExecuteSQL(string sql, bool masterSchema = false)
+        {
+            if (!Connected)
+            {
+                _CreateNewConnection(!masterSchema ? ConnectionString : MasterConnectionString);
+            }
+            var command = _dbConnection.CreateCommand();
+            command.CommandText = sql;
+            command.ExecuteNonQuery();
+        }
+
+        private IDataReader _ExecuteReader(string sql)
+        {
+            if (!Connected)
+                _CreateNewConnection(ConnectionString);
+            var command = _dbConnection.CreateCommand();
+            command.CommandText = sql;
+            var reader = command.ExecuteReader();
+            return reader;
         }
 
         public string ConnectionString { get; set; }
@@ -90,82 +112,40 @@ namespace SimpleORM.Providers.MsSql
 
         public void InsertEntities(IReadOnlyList<EntityEntry> entries)
         {
-            if (!Connected)
-                _CreateNewConnection(ConnectionString);
             foreach (var entry in entries)
-            {
-                var command = _dbConnection.CreateCommand();
-                command.CommandText = new MsSqlInsertBuilder(entry).Build();
-                command.ExecuteNonQuery();
-            }
+                _ExecuteSQL(_insertBuilder.With(entry).Build());
         }
 
         public void UpdateEntities(IReadOnlyList<EntityEntry> entries)
         {
-            if (!Connected)
-                _CreateNewConnection(ConnectionString);
             foreach (var entry in entries)
-            {
-                var command = _dbConnection.CreateCommand();
-                command.CommandText = new MsSqlUpdateBuilder(entry, entry.TableMetadata.Schema).Build();
-                command.ExecuteNonQuery();
-            }
+                _ExecuteSQL(_updateBuilder.With(entry).Build());
         }
 
-        public void CreateTable(TableMetadata tableMetadata, string schema)
+        public void CreateTable(TableMetadata tableMetadata)
         {
-            if(!Connected)
-                _CreateNewConnection(ConnectionString);
-        
-            var sql = new MsSqlTableBuilder(tableMetadata, schema).Build();
-
-            SqlCommand sqlCommand = _dbConnection.CreateCommand();
-            sqlCommand.CommandText = sql;
-
-            sqlCommand.ExecuteNonQuery();
+            _ExecuteSQL(_tableBuilder.With(tableMetadata).Build());
         }
 
         public void DeleteEntities(IReadOnlyList<EntityEntry> entries)
         {
-            if (!Connected)
-                _CreateNewConnection(ConnectionString);
             foreach (var entry in entries)
-            {
-                var command = _dbConnection.CreateCommand();
-                command.CommandText = new MsSqlDeleteBuilder(entry).Build();
-                command.ExecuteNonQuery();
-            }
+                _ExecuteSQL(_deleteBuilder.With(entry).Build());
         }
 
         public void DropTable(TableMetadata tableMetadata)
         {
-            if (!Connected)
-                _CreateNewConnection(ConnectionString);
-
-            SqlCommand sqlCommand = _dbConnection.CreateCommand();
-            sqlCommand.CommandText = $"DROP TABLE [{tableMetadata.Schema}.{tableMetadata.Name}]";
-
-            sqlCommand.ExecuteNonQuery();
+            _ExecuteSQL($"DROP TABLE [{tableMetadata.Schema}.{tableMetadata.Name}]");
         }
 
-        //TODO: uprosczenie
         public void DropDatabase(string name)
         {
             if (Connected)
             {
                 Disconnect();
             }
-
-            _dbConnection = new SqlConnection(MasterConnectionString);
-            _dbConnection.Open();;
-
-            SqlCommand sqlCommand = _dbConnection.CreateCommand();
-            sqlCommand.CommandText = $"alter database [{name}] set single_user with rollback immediate";
-            var x = sqlCommand.ExecuteNonQuery();
-
-            sqlCommand.CommandText = $"DROP DATABASE {name}";
-            var ra = sqlCommand.ExecuteNonQuery();
-
+            _ExecuteSQL($"alter database [{name}] set single_user with rollback immediate", true);
+            _ExecuteSQL($"DROP DATABASE {name}");
             _dbConnection.Dispose();
             _dbConnection = null;
         }
@@ -173,11 +153,7 @@ namespace SimpleORM.Providers.MsSql
         public void DropSchema(string name)
         {
             _ThrowIfNotConnected();
-
-            SqlCommand sqlCommand = _dbConnection.CreateCommand();
-            sqlCommand.CommandText = $"DROP SCHEMA {name}";
-
-            var ra = sqlCommand.ExecuteNonQuery();
+            _ExecuteSQL($"DROP SCHEMA {name}");
         }
 
         public IDataReader RawSql(string sql)
@@ -194,14 +170,17 @@ namespace SimpleORM.Providers.MsSql
 
         public IDataReader Find(object primaryKey, TableMetadata tableMetadata)
         {
-            if(!Connected)
-                _CreateNewConnection(ConnectionString);
+            var sql =
+                $"SELECT * FROM [{tableMetadata.Schema}.{tableMetadata.Name}] WHERE {EntityFieldAttributeReader.ReadEntityPrimaryKeyName(tableMetadata.EntityType)}='{primaryKey}'";
+            var reader = _ExecuteReader(sql);
+            return reader;
+        }
 
-            var command = _dbConnection.CreateCommand();
-            command.CommandText 
-                = $"SELECT * FROM [{tableMetadata.Schema}.{tableMetadata.Name}] WHERE {EntityFieldAttributeReader.ReadEntityPrimaryKey(tableMetadata.EntityType)}='{primaryKey}'";
-
-            var reader = command.ExecuteReader();
+        public IDataReader FindWhere(string field, object value, TableMetadata tableMetadata)
+        {
+            var sql
+                = $"SELECT * FROM [{tableMetadata.Schema}.{tableMetadata.Name}] WHERE {field}='{value}'";
+            var reader = _ExecuteReader(sql);
             return reader;
         }
 
@@ -211,12 +190,7 @@ namespace SimpleORM.Providers.MsSql
             {
                 return;
             }
-            _CreateNewConnection(MasterConnectionString);
-
-            SqlCommand sqlCommand = _dbConnection.CreateCommand();
-            sqlCommand.CommandText = $"CREATE DATABASE {name};";
-            
-            sqlCommand.ExecuteNonQuery();
+            _ExecuteSQL($"CREATE DATABASE {name};", true);
             _dbConnection.Dispose();
             _dbConnection = null;
         }
@@ -225,36 +199,27 @@ namespace SimpleORM.Providers.MsSql
         {
             if(!Connected || (Connected && _dbConnection.ConnectionString == MasterConnectionString))
                 _CreateNewConnection(ConnectionString);
-
-            SqlCommand sqlCommand = _dbConnection.CreateCommand();
-            sqlCommand.CommandText = $"CREATE SCHEMA {name};";
-
-            sqlCommand.ExecuteNonQuery();
+            _ExecuteSQL($"CREATE SCHEMA {name};");
         }
 
-        public bool IsTableCreated(TableMetadata tableMetadata, string schema)
+        public bool IsTableCreated(TableMetadata tableMetadata)
         {
             bool disconnect = !Connected;
-            if (!Connected)
-            {
+            if(!Connected)
                 _CreateNewConnection(ConnectionString);
-            }
+            var sql =
+                $"if OBJECT_ID('[{tableMetadata.Schema}.{tableMetadata.Name}]') is not null\r\n\tprint 1\r\nelse\r\n\tprint 0";
 
-            SqlCommand sqlCommand = _dbConnection.CreateCommand();
-            sqlCommand.CommandText = $"if OBJECT_ID('[{schema}.{tableMetadata.Name}]') is not null\r\n\tprint 1\r\nelse\r\n\tprint 0";
-
+            
+            
             SemaphoreSlim semaphore = new SemaphoreSlim(0);
             _dbConnection.InfoMessage += (sender, args) =>
             {
                 if (args.Message == "1")
                     semaphore.Release();
-                else
-                {
-                    return;
-                }
             };
             var created = false;
-            var result = sqlCommand.ExecuteNonQuery();
+            _ExecuteSQL(sql);
             if (semaphore.Wait(0))
             {
                 created = true;
@@ -277,21 +242,16 @@ namespace SimpleORM.Providers.MsSql
             }
             _CreateNewConnection(MasterConnectionString);
 
-            SqlCommand sqlCommand = _dbConnection.CreateCommand();
-            sqlCommand.CommandText = $"if DB_ID('{name}') IS NOT NULL\r\n\tprint 1\r\nelse\r\n\tprint 0";
-
+            var sql = $"if DB_ID('{name}') IS NOT NULL\r\n\tprint 1\r\nelse\r\n\tprint 0";
+            
             SemaphoreSlim semaphore = new SemaphoreSlim(0);
             _dbConnection.InfoMessage += (sender, args) =>
             {
                 if (args.Message == "1")
                     semaphore.Release();
-                else
-                {
-                    return;
-                }
             };
             var created = false;
-            var result = sqlCommand.ExecuteNonQuery();
+            _ExecuteSQL(sql, true);
             if (semaphore.Wait(0))
             {
                 created = true;

@@ -38,9 +38,9 @@ namespace SimpleORM.Tests.MsSqlProviderTests
             var db = new Db();
             var ent = new Ent() { Id = 1, Str = "AS" };
             var entry = db.Ents.Add(ent);
-            var builder = new MsSqlDeleteBuilder(entry);
+            var builder = new MsSqlDeleteBuilder();
 
-            var sql = builder.Build();
+            var sql = builder.With(entry).Build();
 
             TestContext.WriteLine(sql);
             Assert.IsNotEmpty(sql);

@@ -5,9 +5,11 @@ VisualStudioVersion = 15.0.28307.572
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SimpleORM", "SimpleORM\SimpleORM.csproj", "{5F5696CE-DEEA-4938-AAD9-A19CA0F0FE96}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SimpleORM.Tests", "SimpleORM.Tests\SimpleORM.Tests.csproj", "{48A2A18E-D06D-4A19-BFDF-4C6805D768CC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SimpleORM.Tests", "SimpleORM.Tests\SimpleORM.Tests.csproj", "{48A2A18E-D06D-4A19-BFDF-4C6805D768CC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SimpleORM.UsageTests", "SimpleORM.UsageTests\SimpleORM.UsageTests.csproj", "{1E18DF77-BBEC-4316-916E-00CDE26423D4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SimpleORM.UsageTests", "SimpleORM.UsageTests\SimpleORM.UsageTests.csproj", "{1E18DF77-BBEC-4316-916E-00CDE26423D4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Aplikacja", "Aplikacja\Aplikacja.csproj", "{1C5975F3-6CD0-4707-9081-71F911AD50AD}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -27,6 +29,10 @@ Global
 		{1E18DF77-BBEC-4316-916E-00CDE26423D4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1E18DF77-BBEC-4316-916E-00CDE26423D4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1E18DF77-BBEC-4316-916E-00CDE26423D4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1C5975F3-6CD0-4707-9081-71F911AD50AD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1C5975F3-6CD0-4707-9081-71F911AD50AD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1C5975F3-6CD0-4707-9081-71F911AD50AD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1C5975F3-6CD0-4707-9081-71F911AD50AD}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

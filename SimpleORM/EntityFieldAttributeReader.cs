@@ -2,15 +2,17 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Net;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using Castle.Core;
 using SimpleORM.Attributes;
 
 namespace SimpleORM
 {
     /// <summary>
-    /// Odczytuje
+    /// Przy pomocy tej klasy odbywa się odczyt informacji powiązanych z encją za pomocą atrybutów.
     /// </summary>
     public static class EntityFieldAttributeReader
     {
@@ -33,14 +35,19 @@ namespace SimpleORM
 
         public static bool IsSimpleORMEntity(Type type) => type.GetCustomAttributes(typeof(Entity), false).Length == 1;
 
+        public static bool IsListOfSimpleORMEntities(PropertyInfo prop)
+            => (prop.PropertyType.IsGenericType && prop.PropertyType.GetGenericTypeDefinition() == typeof(List<>))
+               && IsSimpleORMEntity(prop.PropertyType.GenericTypeArguments[0]);
+
         public static Dictionary<string, List<IEntityFieldAttribute>> ReadEntityFieldAttributes(object obj) =>
             ReadEntityFieldAttributes(obj.GetType());
 
         /// <summary>
-        /// Odczytuje atrybuty SimpleORM powiązane z encją
+        /// Odczytuje atrybuty SimpleORM powiązane z encją. Jeśli typ pola encji nie jest
+        /// typem obsługiwanym przez ORM wyrzuca wyjątek.
         /// </summary>
         /// <param name="objType">Typ encji</param>
-        /// <returns> Pary pole POCO - lista powiązanych atrybutów z polem </returns>
+        /// <returns> Pary pole klasy encji - lista powiązanych atrybutów z polem </returns>
         public static Dictionary<string, List<IEntityFieldAttribute>> ReadEntityFieldAttributes(Type objType)
         {
             var propNameToAttribute = new Dictionary<string, List<IEntityFieldAttribute>>();
@@ -53,6 +60,13 @@ namespace SimpleORM
             foreach (var property in objType.GetProperties())
             {
                 var propertyT = property.PropertyType;
+
+                var manyToOne = property.GetCustomAttribute<ManyToOne>();
+                if (manyToOne != null && IsListOfSimpleORMEntities(property))
+                {
+                    propNameToAttribute[property.Name] = new List<IEntityFieldAttribute>(){manyToOne};
+                    continue;
+                }
                 if (IsSimpleORMEntity(propertyT))
                 {
                     continue;
@@ -61,15 +75,12 @@ namespace SimpleORM
                 {
                     throw new Exception($"Typ {property.PropertyType.FullName} nie jest obsługiwany");
                 }
-                var customAttributes = property.GetCustomAttributes<Attribute>();
+                var customAttributes = property.GetCustomAttributes<Attribute>().OfType<IEntityFieldAttribute>();
+                if(customAttributes.Any())
+                    propNameToAttribute[property.Name] = new List<IEntityFieldAttribute>();
                 foreach (var attribute in customAttributes)
                 {
-                    if (attribute is IEntityFieldAttribute item)
-                    {
-                        if(!propNameToAttribute.ContainsKey(property.Name))
-                            propNameToAttribute[property.Name] = new List<IEntityFieldAttribute>();
-                        propNameToAttribute[property.Name].Add(item);
-                    }
+                    propNameToAttribute[property.Name].Add(attribute);
                 }               
             }
 
@@ -80,7 +91,7 @@ namespace SimpleORM
             ReadEntityTrackedFields(obj.GetType());
 
         /// <summary>
-        /// Odczytuje nazwy pól POCO które mogą być obserwowane przez ORM
+        /// Odczytuje nazwy pól klasy które mogą być obserwowane przez ORM
         /// </summary>
         /// <param name="objType">Typ encji</param>
         /// <returns>Pary nazwa pola - typ pola</returns>
@@ -95,7 +106,7 @@ namespace SimpleORM
             foreach (var property in objType.GetProperties())
             {
                 var propertyT = property.PropertyType;
-                if (IsSimpleORMEntity(propertyT))
+                if (IsSimpleORMEntity(propertyT) || IsListOfSimpleORMEntities(property))
                 {
                     continue;
                 }
@@ -116,7 +127,7 @@ namespace SimpleORM
         /// </summary>
         /// <param name="type">Typ encji</param>
         /// <returns>Nazwa pola będąca kluczem głównym encji</returns>
-        public static string ReadEntityPrimaryKey(Type type)
+        public static string ReadEntityPrimaryKeyName(Type type)
         {
             if(!IsSimpleORMEntity(type))
                 throw new Exception();
@@ -132,6 +143,11 @@ namespace SimpleORM
                 throw new Exception($"Ilość kluczy głównych encji {type.FullName} jest większa niż 1");
 
             return string.Empty;
+        }
+
+        public static object ReadEntityPrimaryKeyValue(object entity)
+        {
+            return entity.GetType().GetProperty(ReadEntityPrimaryKeyName(entity.GetType())).GetValue(entity);
         }
 
     }

@@ -12,9 +12,14 @@ namespace SimpleORM.Providers.MsSql
     {
         private EntityEntry _entityEntry;
 
-        public MsSqlInsertBuilder(EntityEntry entityEntry)
+        public MsSqlInsertBuilder()
+        {
+        }
+
+        public MsSqlInsertBuilder With(EntityEntry entityEntry)
         {
             _entityEntry = entityEntry;
+            return this;
         }
 
         public string Build()

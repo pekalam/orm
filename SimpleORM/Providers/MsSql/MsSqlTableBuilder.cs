@@ -32,19 +32,20 @@ namespace SimpleORM.Providers.MsSql
     public class MsSqlTableBuilder
     {
         private TableMetadata _tableMetadata;
-        private string _schema;
 
-        public MsSqlTableBuilder(TableMetadata tableMetadata, string schema)
+        public MsSqlTableBuilder(){}
+
+        public MsSqlTableBuilder With(TableMetadata tableMetadata)
         {
             _tableMetadata = tableMetadata;
-            _schema = schema;
+            return this;
         }
 
         public string Build()
         {
             var s = new StringBuilder();
-            s.AppendLine($"CREATE TABLE [{_schema}.{_tableMetadata.Name}] (");
-            StringBuilder fk = new StringBuilder();
+            s.AppendLine($"CREATE TABLE [{_tableMetadata.Schema}.{_tableMetadata.Name}] (");
+            var fk = new StringBuilder();
             foreach (var name in _tableMetadata.EntityPropertyNameToType.Keys)
             {
                 s.Append("  ");
@@ -59,6 +60,7 @@ namespace SimpleORM.Providers.MsSql
                     var attrs = _tableMetadata.EntityPropertyAttributes[name];
                     if (attrs.Count > 0)
                     {
+                        bool hasfk = false;
                         foreach (var entityFieldAttribute in attrs)
                         {
                             entityFieldAttribute.Validate(_tableMetadata.EntityType);
@@ -67,11 +69,11 @@ namespace SimpleORM.Providers.MsSql
 
                             if (attribute == typeof(ForeignKey))
                             {
+                                hasfk = true;
                                 var foreignKey = entityFieldAttribute as ForeignKey;
-                                var refTable = _tableMetadata.EntityType.GetProperty(foreignKey.Target).PropertyType;
                                 fk.AppendLine($"CONSTRAINT fk_{_tableMetadata.Name}_{name}");
                                 fk.AppendLine($" FOREIGN KEY ({name})");
-                                fk.AppendLine($" REFERENCES [{_schema}.{refTable.Name}] ({foreignKey.Referenced})");
+                                fk.AppendLine($" REFERENCES [{_tableMetadata.Schema}.{_tableMetadata.Name}] ({foreignKey.Referenced})");
                             }
                             else if (attribute == typeof(OnUpdate))
                             {
@@ -103,12 +105,19 @@ namespace SimpleORM.Providers.MsSql
                                 s.Append($"{attrStr} ");
                             }
                         }
+                        if(hasfk)
+                            fk.Append(",");
+
                     }
                 }
                 s.AppendLine("NOT NULL,");
             }
 
-            s.AppendLine(fk.ToString());
+            if (fk.Length > 0)
+            {
+                s.AppendLine(fk.ToString().Substring(0, fk.Length - 1));
+            }
+            
             s.AppendLine(")");
             return s.ToString();
         }

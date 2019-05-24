@@ -77,6 +77,7 @@
     <Compile Include="Attributes\AutoIncrement.cs" />
     <Compile Include="Attributes\Entity.cs" />
     <Compile Include="Attributes\IEntityFieldAttribute.cs" />
+    <Compile Include="Attributes\ManyToOne.cs" />
     <Compile Include="Attributes\OnDelete.cs" />
     <Compile Include="Attributes\OnUpdate.cs" />
     <Compile Include="Database.cs" />
@@ -85,7 +86,6 @@
     <Compile Include="EntityState.cs" />
     <Compile Include="Attributes\ForeignKey.cs" />
     <Compile Include="Providers\IDatabaseProvider.cs" />
-    <Compile Include="Providers\InMemory\InMemoryDatabaseProvider.cs" />
     <Compile Include="InternalDepedencyProvider.cs" />
     <Compile Include="Providers\MsSql\MsSqlDatabaseProvider.cs" />
     <Compile Include="Attributes\NotTracked.cs" />
@@ -96,6 +96,7 @@
     <Compile Include="Providers\MsSql\MsSqlTableBuilder.cs" />
     <Compile Include="Providers\MsSql\MsSqlUpdateBuilder.cs" />
     <Compile Include="StateManager.cs" />
+    <Compile Include="Table%27.cs" />
     <Compile Include="Table.cs" />
   </ItemGroup>
   <ItemGroup>

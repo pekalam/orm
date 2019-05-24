@@ -14,12 +14,15 @@ namespace SimpleORM.Providers.MsSql
     public class MsSqlUpdateBuilder
     {
         private EntityEntry _entityEntry;
-        private string _schema;
 
-        public MsSqlUpdateBuilder(EntityEntry entityEntry, string schema)
+        public MsSqlUpdateBuilder()
+        {
+        }
+
+        public MsSqlUpdateBuilder With(EntityEntry entityEntry)
         {
             _entityEntry = entityEntry;
-            _schema = schema;
+            return this;
         }
 
         public string Build()
@@ -28,7 +31,7 @@ namespace SimpleORM.Providers.MsSql
             var entityFieldAttributes = _entityEntry.TableMetadata.EntityPropertyAttributes;
             int i = 1;
             var sql = new StringBuilder();
-            sql.Append($"UPDATE [{_schema}.{_entityEntry.TableMetadata.Name}] SET ");
+            sql.Append($"UPDATE [{_entityEntry.TableMetadata.Schema}.{_entityEntry.TableMetadata.Name}] SET ");
             foreach (var entityTrackedField in entityTrackedFields)
             {
                 var name = entityTrackedField.Key;
@@ -50,7 +53,7 @@ namespace SimpleORM.Providers.MsSql
 
             sql.Append(" WHERE ");
 
-            var primaryKeyName = EntityFieldAttributeReader.ReadEntityPrimaryKey(_entityEntry.TrackedEntity.GetType());
+            var primaryKeyName = EntityFieldAttributeReader.ReadEntityPrimaryKeyName(_entityEntry.TrackedEntity.GetType());
             if (!string.IsNullOrEmpty(primaryKeyName))
             {
                 var primaryKey = _entityEntry.TrackedEntity.GetType().GetProperty(primaryKeyName)

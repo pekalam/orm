@@ -22,6 +22,12 @@ namespace SimpleORM
         TableMetadata GetTableMetadataForEntity(object entity);
         IStateManager StateManager { get; }
         IDatabaseProvider DatabaseProvider { get; }
+        object Find(TableMetadata tableMetadata, object primaryKey);
+        object FindWhere(TableMetadata tableMetadata, string field, object value);
+        object[] FindAll(TableMetadata tableMetadata, object primaryKeys);
+        object[] FindAllWhere(TableMetadata tableMetadata, string field, object values);
+        TableMetadata GetTableMetadataForEntity(Type entity);
+        string Schema { get; }
     }
 
     /// <summary>
@@ -82,8 +88,7 @@ namespace SimpleORM
                             null, new object[] {this, propertyInfo.Name}, null);
                         propertyInfo.SetValue(this, tableInstance);
                         var tableMetadata = (TableMetadata)tableInstance.GetType().GetProperty("Metadata").GetValue(tableInstance);
-                        //TODO
-                        tableMetadata.Schema = _schemaName;
+
                         _typeToTableMetadata.Add(tableEntityType, tableMetadata);
                         _tableMetadataToPropertyInfo.Add(tableMetadata, propertyInfo);
                         tables++;
@@ -97,11 +102,6 @@ namespace SimpleORM
             }
         }
 
-        public void Connect()
-        {
-            DatabaseProvider.Connect();
-        }
-
         public void Disconnect()
         {
             DatabaseProvider.Disconnect();
@@ -113,6 +113,30 @@ namespace SimpleORM
                 throw new Exception();
             var reader = DatabaseProvider.RawSql(sql);
             return reader;
+        }
+
+        public object Find(TableMetadata tableMetadata, object primaryKey)
+        {
+            var table = _tableMetadataToPropertyInfo[tableMetadata].GetValue(this);
+            return table.GetType().GetMethod("Find").Invoke(table,new object[]{primaryKey});
+        }
+
+        public object[] FindAll(TableMetadata tableMetadata, object primaryKey)
+        {
+            var table = _tableMetadataToPropertyInfo[tableMetadata].GetValue(this);
+            return (object[]) table.GetType().GetMethod("FindAll").Invoke(table, new object[] { primaryKey });
+        }
+
+        public object FindWhere(TableMetadata tableMetadata, string field, object value)
+        {
+            var table = _tableMetadataToPropertyInfo[tableMetadata].GetValue(this);
+            return table.GetType().GetMethod("FindWhere").Invoke(table, new object[] { field, value });
+        }
+
+        public object[] FindAllWhere(TableMetadata tableMetadata, string field, object value)
+        {
+            var table = _tableMetadataToPropertyInfo[tableMetadata].GetValue(this);
+            return (object[]) table.GetType().GetMethod("FindAllWhere").Invoke(table, new object[] { field, value});
         }
 
         public string Schema => _schemaName;
@@ -180,10 +204,10 @@ namespace SimpleORM
             }
             foreach (var tableMetadata in _typeToTableMetadata.Values)
             {
-                if (!DatabaseProvider.IsTableCreated(tableMetadata, _schemaName))
+                if (!DatabaseProvider.IsTableCreated(tableMetadata))
                 {
                     created = false;
-                    DatabaseProvider.CreateTable(tableMetadata, _schemaName);
+                    DatabaseProvider.CreateTable(tableMetadata);
                 }
             }
             DatabaseProvider.Disconnect();

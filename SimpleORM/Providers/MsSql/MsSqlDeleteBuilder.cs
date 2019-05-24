@@ -9,19 +9,22 @@ namespace SimpleORM.Providers.MsSql
     public class MsSqlDeleteBuilder
     {
         private EntityEntry _entityEntry;
-        public MsSqlDeleteBuilder(EntityEntry entityEntry)
+        public MsSqlDeleteBuilder(){}
+
+        public MsSqlDeleteBuilder With(EntityEntry entityEntry)
         {
             _entityEntry = entityEntry;
+            return this;
         }
 
         public string Build()
         {
             var sql = new StringBuilder();
             sql.Append($"DELETE FROM [{_entityEntry.TableMetadata.Schema}.{_entityEntry.TableMetadata.Name}] WHERE ");
-            var pk = EntityFieldAttributeReader.ReadEntityPrimaryKey(_entityEntry.TrackedEntity.GetType());
+            var pk = EntityFieldAttributeReader.ReadEntityPrimaryKeyName(_entityEntry.TrackedEntity.GetType());
             if (!string.IsNullOrEmpty(pk))
             {
-                var value = _entityEntry.TrackedEntity.GetType().GetProperty(pk).GetValue(_entityEntry.TrackedEntity);
+                var value = EntityFieldAttributeReader.ReadEntityPrimaryKeyValue(_entityEntry.TrackedEntity);
                 sql.Append($"{pk}={value}");
             }
             else

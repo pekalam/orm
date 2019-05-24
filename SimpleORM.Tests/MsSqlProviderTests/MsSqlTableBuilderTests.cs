@@ -24,7 +24,11 @@ namespace SimpleORM.Tests.MsSqlProviderTests
             [OnDelete("CASCADE")]
             public int Fk { get; set; }
             public X FkRef { get; set; }
-            
+
+            [ForeignKey("FkRef2")]
+            [OnDelete("CASCADE")]
+            public int Fk2 { get; set; }
+            public X FkRef2 { get; set; }
         }
 
         [Entity]
@@ -41,7 +45,7 @@ namespace SimpleORM.Tests.MsSqlProviderTests
         {
             ["Id"] = typeof(int),
             ["Name"] = typeof(string)
-        }, typeof(TestEntity));
+        }, typeof(TestEntity), "orm");
 
         static TableMetadata stub2 = new TableMetadata("TestTable", new Dictionary<string, List<IEntityFieldAttribute>>()
         {
@@ -50,18 +54,20 @@ namespace SimpleORM.Tests.MsSqlProviderTests
         {
             ["Id"] = typeof(int),
             ["Name"] = typeof(string)
-        }, typeof(TestEntity));
+        }, typeof(TestEntity), "orm");
 
         static TableMetadata stub3 = new TableMetadata("TestTable", new Dictionary<string, List<IEntityFieldAttribute>>()
         {
             ["Id"] = new List<IEntityFieldAttribute>() { new AutoIncrement(), new PrimaryKey() },
-            ["Fk"] = new List<IEntityFieldAttribute>() { new ForeignKey("FkRef"), new OnDelete("CASCADE") }
+            ["Fk"] = new List<IEntityFieldAttribute>() { new ForeignKey("FkRef"), new OnDelete("CASCADE"), new OnUpdate("CASCADE") },
+            ["Fk2"] = new List<IEntityFieldAttribute>() { new ForeignKey("FkRef2"), new OnDelete("CASCADE"), new OnUpdate("CASCADE") }
         }, new Dictionary<string, Type>()
         {
             ["Id"] = typeof(int),
             ["Fk"] = typeof(int),
+            ["Fk2"] = typeof(int),
             ["Name"] = typeof(int)
-        }, typeof(TestEntity));
+        }, typeof(TestEntity), "orm");
 
         static TableMetadata GetStub(string name)
         {
@@ -84,7 +90,7 @@ namespace SimpleORM.Tests.MsSqlProviderTests
         public void TableBuilder_from_entity_returns_valid_sql(string name)
         {
             TableMetadata stubTableMetadata = GetStub(name);
-            var sql = new MsSqlTableBuilder(stubTableMetadata, "orm").Build();
+            var sql = new MsSqlTableBuilder().With(stubTableMetadata).Build();
 
             TestContext.WriteLine(sql);
         }

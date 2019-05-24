@@ -37,9 +37,9 @@ namespace SimpleORM.Tests.MsSqlProviderTests
             var db = new Db();
             var ent = new Ent(){Id = 1, Str = "AS"};
             var entry = db.Ents.Add(ent);
-            var insertBuilder = new MsSqlInsertBuilder(entry);
+            var insertBuilder = new MsSqlInsertBuilder();
 
-            var sql = insertBuilder.Build();
+            var sql = insertBuilder.With(entry).Build();
 
             TestContext.WriteLine(sql);
         }

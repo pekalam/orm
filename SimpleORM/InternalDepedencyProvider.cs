@@ -1,5 +1,5 @@
 ﻿using SimpleORM.Providers;
-using SimpleORM.Providers.InMemory;
+using SimpleORM.Providers.MsSql;
 using Unity;
 
 namespace SimpleORM
@@ -26,7 +26,7 @@ namespace SimpleORM
         {
             _container = new UnityContainer();
             _container.RegisterType<IStateManager, StateManager>();
-            _container.RegisterType<IDatabaseProvider, InMemoryDatabaseProvider>();
+            _container.RegisterType<IDatabaseProvider, MsSqlDatabaseProvider>();
         }
 
         /// <summary>

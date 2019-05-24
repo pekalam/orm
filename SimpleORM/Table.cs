@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using Castle.DynamicProxy.Generators.Emitters;
@@ -14,21 +15,28 @@ namespace SimpleORM
     {
         public TableMetadata(string par1, 
             IReadOnlyDictionary<string, List<IEntityFieldAttribute>> par2,
-            IReadOnlyDictionary<string, Type> par3, Type entityType)
+            IReadOnlyDictionary<string, Type> par3, Type entityType, string schema)
         {
             Name = par1;
             EntityPropertyAttributes = par2;
             EntityPropertyNameToType = par3;
             EntityType = entityType;
+            Schema = schema;
         }
 
         //TODO
-        public string Schema { get; set; }
+        public string Schema { get;}
 
         public string Name { get; }
 
+        /// <summary>
+        /// Typ encji przechowywanych w tabeli
+        /// </summary>
         public Type EntityType { get; }
 
+        /// <summary>
+        /// Pary nazwa pola encji - lista powiązanych z nim atrubutów
+        /// </summary>
         public IReadOnlyDictionary<string, List<IEntityFieldAttribute>> EntityPropertyAttributes { get; }
 
         public IReadOnlyDictionary<string, Type> EntityPropertyNameToType { get; }
@@ -38,10 +46,10 @@ namespace SimpleORM
     /// Reprezentuje tabelę w bazie danych. Podstawowa klasa SimpleORM
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public class Table<T> where T : class,new()
+    public partial class Table<T> where T : class,new()
     {
         /// <summary>
-        /// Powiązany z tabelą obiekt Database
+        /// Powiązana z tabelą baza
         /// </summary>
         private IDatabase _database;
 
@@ -55,7 +63,7 @@ namespace SimpleORM
             _database = database;
             var entityAttr = EntityFieldAttributeReader.ReadEntityFieldAttributes(typeof(T));
             var entityTrackedFields = EntityFieldAttributeReader.ReadEntityTrackedFields(typeof(T));
-            Metadata = new TableMetadata(name, entityAttr, entityTrackedFields, typeof(T));
+            Metadata = new TableMetadata(name, entityAttr, entityTrackedFields, typeof(T), database.Schema);
         }
 
         public string TableName => Metadata.Name;
@@ -84,33 +92,38 @@ namespace SimpleORM
 
         public T Find(object primaryKey)
         {
-            var reader = _database.DatabaseProvider.Find(primaryKey, Metadata);
-
-            T obj = new T();
-            var trackedProps = EntityFieldAttributeReader.ReadEntityTrackedFields(typeof(T));
-            if(trackedProps.Count != reader.FieldCount)
-                throw new Exception();
-            int i = 0;
-
-            reader.Read();
-            foreach (var kv in trackedProps)
-            {
-                obj.GetType().GetProperty(kv.Key).SetValue(obj, reader[i]);
-                i++;
-            }
-
-            return obj;
+            var pkName = EntityFieldAttributeReader.ReadEntityPrimaryKeyName(Metadata.EntityType);
+            return _FindWhere(pkName, primaryKey).SingleOrDefault();
         }
 
-        public T[] FindAll(object[] primaryKeys)
+        public T FindWhere(string field, object value)
         {
-            T[] results = new T[primaryKeys.Length];
-            for (int i = 0; i < primaryKeys.Length; i++)
-            {
-                results[i] = Find(primaryKeys[i]);
-            }
+            return _FindWhere(field, value).SingleOrDefault();
+        }
 
-            return results;
+        /// <summary>
+        /// Zwraca wszystkie rekordy w dla których wartosc klucza głównego jest równa
+        /// wartości argumentu value
+        /// </summary>
+        /// <param name="field">Nazwa porównywanego pola</param>
+        /// <param name="value">Wartość pola</param>
+        /// <returns>Znalezione rekordy</returns>
+        public T[] FindAll(object primaryKey)
+        {
+            var pkName = EntityFieldAttributeReader.ReadEntityPrimaryKeyName(Metadata.EntityType);
+            return _FindWhere(pkName, primaryKey);
+        }
+
+        /// <summary>
+        /// Zwraca wszystkie rekordy w dla których wartosc pola o nazwie field jest równa
+        /// wartości argumentu value
+        /// </summary>
+        /// <param name="field">Nazwa porównywanego pola</param>
+        /// <param name="value">Wartość pola</param>
+        /// <returns>Znalezione rekordy</returns>
+        public T[] FindAllWhere(string field, object value)
+        {
+            return _FindWhere(field, value);
         }
     }
 }
