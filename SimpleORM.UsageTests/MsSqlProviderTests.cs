@@ -15,16 +15,9 @@ namespace SimpleORM.UsageTests
     [TestFixture()]
     public class MsSqlProviderTests
     {
-        [Test]
-        public void f()
-        {
-            MsSqlDatabaseProviderUtils.CreateDatabase("teeest");
-            Thread.Sleep(2000);
-            MsSqlDatabaseProviderUtils.DropDatabase("teeest");
-        }
 
         [Test]
-        public void Checks_is_database_created()
+        public void Creates_database()
         {
             MsSqlDatabaseProviderUtils.CreateDatabase("testowa");
             var prov = new MsSqlDatabaseProvider(MsSqlDatabaseProviderUtils.GetConnectionString("testowa"),
@@ -34,6 +27,28 @@ namespace SimpleORM.UsageTests
             prov.Disconnect();
             MsSqlDatabaseProviderUtils.DropDatabase("testowa");
 
+            Assert.IsTrue(exists);
+        }
+
+        [Test]
+        public void IsDatabaseCreated_if_not_created_returns_false()
+        {
+            var prov = new MsSqlDatabaseProvider(MsSqlDatabaseProviderUtils.GetConnectionString("xxx"),
+                MsSqlDatabaseProviderUtils.masterConnectionString);
+            var exists = prov.IsDatabaseCreated("xxx");
+            prov.Disconnect();
+            Assert.IsFalse(exists);
+        }
+
+        [Test]
+        public void IsDatabaseCreated_if_created_returns_true()
+        {
+            MsSqlDatabaseProviderUtils.CreateDatabase("xxx");
+            var prov = new MsSqlDatabaseProvider(MsSqlDatabaseProviderUtils.GetConnectionString("xxx"),
+                MsSqlDatabaseProviderUtils.masterConnectionString);
+            var exists = prov.IsDatabaseCreated("xxx");
+            prov.Disconnect();
+            MsSqlDatabaseProviderUtils.DropDatabase("xxx");
             Assert.IsTrue(exists);
         }
     }

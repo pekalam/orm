@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -46,9 +47,9 @@ namespace SimpleORM
 
             if (!IsSimpleORMEntity(objType))
             {
-                throw new Exception($"Klasa {objType.Name} nie jest oznaczona atrybutem Entity");
+                throw new Exception($"Klasa {objType.FullName} nie jest oznaczona atrybutem Entity");
             }
-            //TODO: linq
+
             foreach (var property in objType.GetProperties())
             {
                 var propertyT = property.PropertyType;
@@ -58,7 +59,7 @@ namespace SimpleORM
                 }
                 if (!IsSimpleType(propertyT))
                 {
-                    throw new Exception($"Typ {property.PropertyType.Name} nie jest obsługiwany");
+                    throw new Exception($"Typ {property.PropertyType.FullName} nie jest obsługiwany");
                 }
                 var customAttributes = property.GetCustomAttributes<Attribute>();
                 foreach (var attribute in customAttributes)
@@ -108,6 +109,29 @@ namespace SimpleORM
             }
 
             return trackedProperties;
+        }
+
+        /// <summary>
+        /// Zwraca nazwę pola które jest kluczem głównym dla encji
+        /// </summary>
+        /// <param name="type">Typ encji</param>
+        /// <returns>Nazwa pola będąca kluczem głównym encji</returns>
+        public static string ReadEntityPrimaryKey(Type type)
+        {
+            if(!IsSimpleORMEntity(type))
+                throw new Exception();
+
+            var pk = type.GetProperties()
+                .Select(p => p)
+                .Where(p => p.GetCustomAttribute(typeof(PrimaryKey)) != null)
+                .Select(p => p.Name)
+                .ToList();
+            if(pk.Count == 1)
+                return pk[0];
+            if(pk.Count > 1)
+                throw new Exception($"Ilość kluczy głównych encji {type.FullName} jest większa niż 1");
+
+            return string.Empty;
         }
 
     }

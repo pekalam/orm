@@ -16,6 +16,7 @@ namespace SimpleORM
         EntityEntry Remove(object entity);
         void ApplyState(IReadOnlyList<EntityEntry> entities, EntityState newState);
         IReadOnlyList<EntityEntry> GetEntriesToSave();
+        void DropEntriesFromTable(TableMetadata tableMetadata);
         IDatabase Database { set; }
         void SaveChanges();
     }
@@ -78,10 +79,20 @@ namespace SimpleORM
             }
         }
 
+        public void DropEntriesFromTable(TableMetadata tableMetadata)
+        {
+            foreach (var entityEntry in _entityEntries)
+            {
+                if (entityEntry.Value.TableMetadata.Equals(tableMetadata))
+                    _entityEntries.Remove(entityEntry.Key);
+            }
+        }
+
         private List<EntityEntry> _GetEntriesToSave()
         {
-            var list = _entityEntries.Select(p => p.Value).Where(p =>
-                    p.State != EntityState.Unchanged && p.State != EntityState.Detached)
+            var list = _entityEntries
+                .Select(p => p.Value)
+                .Where(p => p.State != EntityState.Unchanged && p.State != EntityState.Detached)
                 .ToList();
             return list;
         }

@@ -37,7 +37,7 @@ namespace SimpleORM.Tests
             Assert.IsTrue(attrs["Fk"].Count == 1);
             Assert.IsTrue(attrs["Fk"][0] is ForeignKey);
             Assert.IsTrue((attrs["Fk"][0] as ForeignKey).Target == "Entity2");
-            Assert.IsTrue((attrs["Fk"][0] as ForeignKey).Validate(typeof(Entity1), typeof(int), "Fk"));
+            Assert.DoesNotThrow(() => { (attrs["Fk"][0] as ForeignKey).Validate(typeof(Entity1)); });
         }
 
         
@@ -54,7 +54,7 @@ namespace SimpleORM.Tests
             var fk = attrs[fkName][0] as ForeignKey;
             try
             {
-                fk.Validate(entityType, typeof(int), fkName);
+                fk.Validate(entityType);
             }
             catch (Exception e)
             {

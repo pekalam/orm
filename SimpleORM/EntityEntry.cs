@@ -1,5 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Runtime.Serialization.Formatters.Binary;
+using FastDeepCloner;
 
 namespace SimpleORM
 {
@@ -8,25 +11,12 @@ namespace SimpleORM
     /// </summary>
     public class EntityEntry
     {
+
         public EntityEntry(object entity, TableMetadata tableMetadata)
         {
             TrackedEntity = entity;
             TableMetadata = tableMetadata;
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <returns></returns>
-        public List<object> GetTrackedValues()
-        {
-            var list = new List<object>();
-            foreach (var propertyName in TableMetadata.EntityPropertyNameToType.Keys)
-            {
-                list.Add(TrackedEntity.GetType().GetProperty(propertyName).GetValue(TrackedEntity));
-            }
-
-            return list;
+            OriginalData = entity.Clone();
         }
 
         /// <summary>
@@ -38,6 +28,11 @@ namespace SimpleORM
         /// POCO reprezentowane przez EntityEntry
         /// </summary>
         public object TrackedEntity { get; }
+
+        /// <summary>
+        /// Kopia obiektu powiazanego z encją w momencie powiazania z ORM
+        /// </summary>
+        public object OriginalData { get; }
 
         /// <summary>
         /// Metadane powiązanej z encją tabeli

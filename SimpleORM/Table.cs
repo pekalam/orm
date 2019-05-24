@@ -4,6 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Castle.DynamicProxy.Generators.Emitters;
+using log4net.Util;
+using NLog.Win32.LayoutRenderers;
 using SimpleORM.Attributes;
 
 namespace SimpleORM
@@ -19,6 +21,9 @@ namespace SimpleORM
             EntityPropertyNameToType = par3;
             EntityType = entityType;
         }
+
+        //TODO
+        public string Schema { get; set; }
 
         public string Name { get; }
 
@@ -38,14 +43,14 @@ namespace SimpleORM
         /// <summary>
         /// Powiązany z tabelą obiekt Database
         /// </summary>
-        private Database _database;
+        private IDatabase _database;
 
         /// <summary>
         /// 
         /// </summary>
         /// <param name="database"></param>
         /// <param name="name"> Nazwa tabeli </param>
-        public Table(Database database, string name)
+        public Table(IDatabase database, string name)
         {
             _database = database;
             var entityAttr = EntityFieldAttributeReader.ReadEntityFieldAttributes(typeof(T));
@@ -77,6 +82,35 @@ namespace SimpleORM
             return _database.StateManager.Remove(entity);
         }
 
+        public T Find(object primaryKey)
+        {
+            var reader = _database.DatabaseProvider.Find(primaryKey, Metadata);
 
+            T obj = new T();
+            var trackedProps = EntityFieldAttributeReader.ReadEntityTrackedFields(typeof(T));
+            if(trackedProps.Count != reader.FieldCount)
+                throw new Exception();
+            int i = 0;
+
+            reader.Read();
+            foreach (var kv in trackedProps)
+            {
+                obj.GetType().GetProperty(kv.Key).SetValue(obj, reader[i]);
+                i++;
+            }
+
+            return obj;
+        }
+
+        public T[] FindAll(object[] primaryKeys)
+        {
+            T[] results = new T[primaryKeys.Length];
+            for (int i = 0; i < primaryKeys.Length; i++)
+            {
+                results[i] = Find(primaryKeys[i]);
+            }
+
+            return results;
+        }
     }
 }

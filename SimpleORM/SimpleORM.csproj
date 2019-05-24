@@ -43,6 +43,9 @@
     <Reference Include="Castle.Services.Logging.NLogIntegration, Version=1.2.0.0, Culture=neutral, PublicKeyToken=407dd0808d44fbdc, processorArchitecture=MSIL">
       <HintPath>..\packages\Castle.Core.1.2.0\lib\Castle.Services.Logging.NLogIntegration.dll</HintPath>
     </Reference>
+    <Reference Include="FastDeepCloner, Version=1.0.1.5, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\FastDeepCloner.1.1.5\lib\net451\FastDeepCloner.dll</HintPath>
+    </Reference>
     <Reference Include="log4net, Version=1.2.10.0, Culture=neutral, PublicKeyToken=1b44e1d426115821, processorArchitecture=MSIL">
       <HintPath>..\packages\log4net.1.2.10\lib\2.0\log4net.dll</HintPath>
     </Reference>
@@ -74,12 +77,13 @@
     <Compile Include="Attributes\AutoIncrement.cs" />
     <Compile Include="Attributes\Entity.cs" />
     <Compile Include="Attributes\IEntityFieldAttribute.cs" />
+    <Compile Include="Attributes\OnDelete.cs" />
+    <Compile Include="Attributes\OnUpdate.cs" />
     <Compile Include="Database.cs" />
     <Compile Include="EntityEntry.cs" />
     <Compile Include="EntityFieldAttributeReader.cs" />
     <Compile Include="EntityState.cs" />
     <Compile Include="Attributes\ForeignKey.cs" />
-    <Compile Include="Providers\DatabaseProviders.cs" />
     <Compile Include="Providers\IDatabaseProvider.cs" />
     <Compile Include="Providers\InMemory\InMemoryDatabaseProvider.cs" />
     <Compile Include="InternalDepedencyProvider.cs" />
@@ -87,8 +91,10 @@
     <Compile Include="Attributes\NotTracked.cs" />
     <Compile Include="Attributes\PrimaryKey.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Providers\MsSql\MsSqlSchemaBuilder.cs" />
+    <Compile Include="Providers\MsSql\MsSqlDeleteBuilder.cs" />
+    <Compile Include="Providers\MsSql\MsSqlInsertBuilder.cs" />
     <Compile Include="Providers\MsSql\MsSqlTableBuilder.cs" />
+    <Compile Include="Providers\MsSql\MsSqlUpdateBuilder.cs" />
     <Compile Include="StateManager.cs" />
     <Compile Include="Table.cs" />
   </ItemGroup>

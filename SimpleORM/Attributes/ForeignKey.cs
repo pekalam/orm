@@ -45,7 +45,7 @@ namespace SimpleORM.Attributes
             }
         }
 
-        public bool Validate(Type enityType, Type decoratedPropType, string decoratedPropName)
+        public void Validate(Type enityType)
         {
             var targetProp = enityType.GetProperty(Target);
             if (targetProp == null)
@@ -72,8 +72,6 @@ namespace SimpleORM.Attributes
             }
 
             _CheckRecursiveReferences(enityType, targetType);
-
-            return true;
         }
     }
 }

@@ -13,9 +13,7 @@ namespace SimpleORM.Attributes
         /// Sprawdza czy atrybut został poprawnie przypisany do encji. W  przeciwnym wypdaku wyrzuca wyjątek.
         /// </summary>
         /// <param name="enityType"></param>
-        /// <param name="decoratedPropType"></param>
-        /// <param name="decoratedPropName"></param>
         /// <returns></returns>
-        bool Validate(Type enityType, Type decoratedPropType, string decoratedPropName);
+        void Validate(Type enityType);
     }
 }

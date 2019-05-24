@@ -9,9 +9,8 @@ namespace SimpleORM.Attributes
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
     public class Entity : Attribute, IEntityFieldAttribute
     {
-        public bool Validate(Type enityType, Type decoratedPropType, string decoratedPropName)
+        public void Validate(Type enityType)
         {
-            return true;
         }
     }
 }

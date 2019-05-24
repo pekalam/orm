@@ -1,4 +1,6 @@
 ﻿using System.Collections.Generic;
+using System.Data;
+using System.Linq;
 
 namespace SimpleORM.Providers.InMemory
 {
@@ -6,13 +8,8 @@ namespace SimpleORM.Providers.InMemory
     {
         private List<EntityEntry> _store = new List<EntityEntry>();
 
-        private bool _connected = false;
-
         public string ConnectionString { get; }
-        public bool Connected
-        {
-            get => _connected;
-        }
+        public bool Connected { get; private set; } = false;
 
         public void InsertEntities(IReadOnlyList<EntityEntry> entries)
         {
@@ -27,9 +24,24 @@ namespace SimpleORM.Providers.InMemory
             return;
         }
 
-        public void CreateTable(TableMetadata tableMetadata)
+        public void CreateTable(TableMetadata tableMetadata, string schema)
         {
-            return;
+            throw new System.NotImplementedException();
+        }
+
+        public void DeleteEntities(IReadOnlyList<EntityEntry> entries)
+        {
+            _store.RemoveAll(ent => entries.Contains(ent));
+        }
+
+        public void DropTable(TableMetadata tableMetadata)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public void CreateDatabase(string name)
+        {
+            throw new System.NotImplementedException();
         }
 
         public void DropDatabase(string name)
@@ -42,14 +54,24 @@ namespace SimpleORM.Providers.InMemory
             throw new System.NotImplementedException();
         }
 
-        public void CreateSchema(string dbName, string name)
+        public void DropSchema(string name)
         {
             throw new System.NotImplementedException();
         }
 
-        public bool IsTableCreated(TableMetadata tableMetadata)
+        public IDataReader RawSql(string sql)
         {
-            return true;
+            throw new System.NotImplementedException();
+        }
+
+        public IDataReader Find(object primaryKey, TableMetadata tableMetadata)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public bool IsTableCreated(TableMetadata tableMetadata, string schema)
+        {
+            throw new System.NotImplementedException();
         }
 
         public bool IsDatabaseCreated(string name)
@@ -64,12 +86,12 @@ namespace SimpleORM.Providers.InMemory
 
         public void Connect()
         {
-            _connected = true;
+            Connected = true;
         }
 
         public void Disconnect()
         {
-            _connected = false;
+            Connected = false;
         }
 
 

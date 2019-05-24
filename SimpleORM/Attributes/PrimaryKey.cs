@@ -6,9 +6,8 @@ namespace SimpleORM.Attributes
     [AttributeUsage(AttributeTargets.Property, AllowMultiple = false)]
     public class PrimaryKey : Attribute, IEntityFieldAttribute
     {
-        public bool Validate(Type enityType, Type decoratedPropType, string decoratedPropName)
+        public void Validate(Type enityType)
         {
-            return true;
         }
     }
 }

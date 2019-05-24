@@ -22,7 +22,7 @@ namespace SimpleORM.UsageTests.TestUtils
             var provider = new MsSqlDatabaseProvider(GetConnectionString(dbName), masterConnectionString);
             provider.CreateDatabase(dbName);
             provider.Connect();
-            provider.CreateSchema(dbName + "c");
+            provider.CreateSchema("orm");
             provider.Disconnect();
         }
 
@@ -30,7 +30,7 @@ namespace SimpleORM.UsageTests.TestUtils
         {
             var provider = new MsSqlDatabaseProvider(GetConnectionString(dbName), masterConnectionString);
             provider.Connect();
-            provider.DropSchema(dbName + "c");
+            provider.DropSchema("orm");
             provider.DropDatabase(dbName);
         }
     }

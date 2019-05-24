@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
@@ -9,15 +10,18 @@ using SimpleORM.Providers;
 
 namespace SimpleORM
 {
+    public class DatabaseOptions
+    {
+        public IDatabaseProvider DatabaseProvider { get; set; }
+        public string DatabaseName { get; set; }
+        public string SchemaName { get; set; }
+    }
 
     public interface IDatabase
     {
         TableMetadata GetTableMetadataForEntity(object entity);
-    }
-
-    public class DatabaseOptions
-    {
-        public IDatabaseProvider DatabaseProvider { get; set; }
+        IStateManager StateManager { get; }
+        IDatabaseProvider DatabaseProvider { get; }
     }
 
     /// <summary>
@@ -27,14 +31,15 @@ namespace SimpleORM
     {
         private IDatabaseDepedencies _databaseDepedencies;
 
-        private IDatabaseProvider _provider;
-
         private string _databaseName;
+        private string _schemaName;
 
         /// <summary>
         /// Pary typ POCO przechowywany w tabeli - metadane tabeli
         /// </summary>
         private Dictionary<Type, TableMetadata> _typeToTableMetadata = new Dictionary<Type, TableMetadata>();
+
+        private Dictionary<TableMetadata ,PropertyInfo> _tableMetadataToPropertyInfo = new Dictionary<TableMetadata, PropertyInfo>();
 
         public Database()
         {
@@ -48,17 +53,16 @@ namespace SimpleORM
 
         private void _Init(DatabaseOptions options)
         {
-            _databaseName = GetType().Name.ToString();
+            _databaseName = (options == null || string.IsNullOrEmpty(options.DatabaseName)) ? GetType().Name.ToString() : options.DatabaseName;
+            _schemaName = (options == null || string.IsNullOrEmpty(options.SchemaName)) ? "orm" : options.SchemaName;
             InitTables();
             _databaseDepedencies = InternalDepedencyProvider.DatabaseDepedencies;
             _databaseDepedencies.StateManager.Database = this;
-            _provider = options == null ? InternalDepedencyProvider.DefaultDatabaseProvider : options.DatabaseProvider;
-
-            _provider.Connect();
+            DatabaseProvider = options == null ? InternalDepedencyProvider.DefaultDatabaseProvider : options.DatabaseProvider;
         }
 
         /// <summary>
-        /// Inicjalizacja podanych tabel przypisanych przez użytkownika do bazy
+        /// Inicjalizacja tabel przypisanych przez użytkownika do bazy
         /// </summary>
         private void InitTables()
         {
@@ -78,9 +82,10 @@ namespace SimpleORM
                             null, new object[] {this, propertyInfo.Name}, null);
                         propertyInfo.SetValue(this, tableInstance);
                         var tableMetadata = (TableMetadata)tableInstance.GetType().GetProperty("Metadata").GetValue(tableInstance);
-                        
+                        //TODO
+                        tableMetadata.Schema = _schemaName;
                         _typeToTableMetadata.Add(tableEntityType, tableMetadata);
-
+                        _tableMetadataToPropertyInfo.Add(tableMetadata, propertyInfo);
                         tables++;
                     }
                 }
@@ -91,6 +96,27 @@ namespace SimpleORM
                 throw new Exception("Baza danych nie zawiera tabel");
             }
         }
+
+        public void Connect()
+        {
+            DatabaseProvider.Connect();
+        }
+
+        public void Disconnect()
+        {
+            DatabaseProvider.Disconnect();
+        }
+
+        public IDataReader RawSql(string sql)
+        {
+            if (sql.Contains("DROP") || sql.Contains("drop"))
+                throw new Exception();
+            var reader = DatabaseProvider.RawSql(sql);
+            return reader;
+        }
+
+        public string Schema => _schemaName;
+        public string Name => _databaseName;
 
         /// <summary>
         /// Zapisuje zmiany w bazie danych
@@ -106,13 +132,20 @@ namespace SimpleORM
                 .Select(e => e).Where(e => e.State == EntityState.Added)
                 .ToList();
             if(toInsert.Count > 0)
-                _provider.InsertEntities(toInsert);
+                DatabaseProvider.InsertEntities(toInsert);
 
             var toUpdate = entriesToSave
                 .Select(e => e).Where(e => e.State == EntityState.Modified)
                 .ToList();
             if(toUpdate.Count > 0)
-                _provider.UpdateEntities(toUpdate);
+                DatabaseProvider.UpdateEntities(toUpdate);
+
+
+            var toDelete = entriesToSave
+                .Select(e => e).Where(e => e.State == EntityState.Deleted)
+                .ToList();
+            if (toDelete.Count > 0)
+                DatabaseProvider.DeleteEntities(toDelete);
 
             StateManager.SaveChanges();
             return entriesToSave.Count;
@@ -123,12 +156,13 @@ namespace SimpleORM
         /// </summary>
         /// <param name="entity"></param>
         /// <returns> Metadane tabeli powiazanej z encją </returns>
-        public TableMetadata GetTableMetadataForEntity(object entity)
+        public TableMetadata GetTableMetadataForEntity(object entity) => GetTableMetadataForEntity(entity.GetType());
+        public TableMetadata GetTableMetadataForEntity(Type entityType)
         {
-            if(!_typeToTableMetadata.ContainsKey(entity.GetType()))
+            if (!_typeToTableMetadata.ContainsKey(entityType))
                 throw new Exception();
 
-            return _typeToTableMetadata[entity.GetType()];
+            return _typeToTableMetadata[entityType];
         }
 
         /// <summary>
@@ -138,18 +172,48 @@ namespace SimpleORM
         public bool EnsureCreated()
         {
             bool created = true;
-
+            if (!DatabaseProvider.IsDatabaseCreated(_databaseName))
+            {
+                DatabaseProvider.CreateDatabase(_databaseName);
+                DatabaseProvider.CreateSchema(_schemaName);
+                created = false;
+            }
             foreach (var tableMetadata in _typeToTableMetadata.Values)
             {
-                if (!_provider.IsTableCreated(tableMetadata))
+                if (!DatabaseProvider.IsTableCreated(tableMetadata, _schemaName))
                 {
                     created = false;
-                    _provider.CreateTable(tableMetadata);
+                    DatabaseProvider.CreateTable(tableMetadata, _schemaName);
                 }
             }
-
+            DatabaseProvider.Disconnect();
             return !created;
         }
+
+        /// <summary>
+        /// Usuwa podaną tabele
+        /// </summary>
+        /// <param name="tableMetadata">Metadane usuwanej tabeli</param>
+        /// <returns>Jesli tabela zostala usunieta zwraca true</returns>
+        public bool DropTable(TableMetadata tableMetadata)
+        {
+            if (_typeToTableMetadata.Values.Contains(tableMetadata))
+            {
+                DatabaseProvider.DropTable(tableMetadata);
+                StateManager.DropEntriesFromTable(tableMetadata);
+
+                _tableMetadataToPropertyInfo[tableMetadata].SetValue(this, null);
+                _tableMetadataToPropertyInfo.Remove(tableMetadata);
+                _typeToTableMetadata.Remove(tableMetadata.EntityType);
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+        public IDatabaseProvider DatabaseProvider { get; private set; }
 
         public IStateManager StateManager => _databaseDepedencies.StateManager;
     }
