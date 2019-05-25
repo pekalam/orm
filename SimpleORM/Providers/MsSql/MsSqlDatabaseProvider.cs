@@ -122,9 +122,9 @@ namespace SimpleORM.Providers.MsSql
                 _ExecuteSQL(_updateBuilder.With(entry).Build());
         }
 
-        public void CreateTable(TableMetadata tableMetadata)
+        public void CreateTable(TableMetadata tableMetadata, Dictionary<Type, TableMetadata> typeToMetadata)
         {
-            _ExecuteSQL(_tableBuilder.With(tableMetadata).Build());
+            _ExecuteSQL(_tableBuilder.With(tableMetadata, typeToMetadata).Build());
         }
 
         public void DeleteEntities(IReadOnlyList<EntityEntry> entries)
@@ -178,8 +178,16 @@ namespace SimpleORM.Providers.MsSql
 
         public IDataReader FindWhere(string field, object value, TableMetadata tableMetadata)
         {
+            string op;
+            if(value.GetType() == typeof(string))
+            {
+                op = "LIKE";
+            }else
+            {
+                op = "=";
+            }
             var sql
-                = $"SELECT * FROM [{tableMetadata.Schema}.{tableMetadata.Name}] WHERE {field}='{value}'";
+                = $"SELECT * FROM [{tableMetadata.Schema}.{tableMetadata.Name}] WHERE {field} {op} '{value}'";
             var reader = _ExecuteReader(sql);
             return reader;
         }

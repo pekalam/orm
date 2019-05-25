@@ -80,6 +80,11 @@ namespace SimpleORM
             return _database.StateManager.Add(entity);
         }
 
+        /// <summary>
+        /// Usuwa encję z ORM
+        /// </summary>
+        /// <param name="entity"></param>
+        /// <returns></returns>
         public EntityEntry Update(T entity)
         {
             return _database.StateManager.Update(entity);
@@ -88,6 +93,11 @@ namespace SimpleORM
         public EntityEntry Remove(T entity)
         {
             return _database.StateManager.Remove(entity);
+        }
+
+        public void Drop()
+        {
+            _database.DropTable(Metadata);
         }
 
         public T Find(object primaryKey)

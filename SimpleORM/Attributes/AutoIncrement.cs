@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 
 namespace SimpleORM.Attributes
 {
-    //TODO abstract class?
     [AttributeUsage(AttributeTargets.Property, AllowMultiple = false)]
     public class AutoIncrement : Attribute, IEntityFieldAttribute
     {

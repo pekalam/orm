@@ -26,7 +26,6 @@ namespace SimpleORM
         {
             _container = new UnityContainer();
             _container.RegisterType<IStateManager, StateManager>();
-            _container.RegisterType<IDatabaseProvider, MsSqlDatabaseProvider>();
         }
 
         /// <summary>
@@ -40,11 +39,6 @@ namespace SimpleORM
                 dep.StateManager = _container.Resolve<IStateManager>();
                 return dep;
             }
-        }
-
-        public static IDatabaseProvider DefaultDatabaseProvider
-        {
-            get { return _container.Resolve<IDatabaseProvider>(); }
         }
 
         

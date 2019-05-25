@@ -7,6 +7,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using SimpleORM.Providers;
+using SimpleORM.Providers.MsSql;
 
 namespace SimpleORM
 {
@@ -28,6 +29,7 @@ namespace SimpleORM
         object[] FindAllWhere(TableMetadata tableMetadata, string field, object values);
         TableMetadata GetTableMetadataForEntity(Type entity);
         string Schema { get; }
+        bool DropTable(TableMetadata tableMetadata);
     }
 
     /// <summary>
@@ -47,6 +49,9 @@ namespace SimpleORM
 
         private Dictionary<TableMetadata ,PropertyInfo> _tableMetadataToPropertyInfo = new Dictionary<TableMetadata, PropertyInfo>();
 
+        /// <summary>
+        /// Tylko do celów testowych - brak domyślnego providera
+        /// </summary>
         public Database()
         {
             _Init(null);
@@ -64,7 +69,7 @@ namespace SimpleORM
             InitTables();
             _databaseDepedencies = InternalDepedencyProvider.DatabaseDepedencies;
             _databaseDepedencies.StateManager.Database = this;
-            DatabaseProvider = options == null ? InternalDepedencyProvider.DefaultDatabaseProvider : options.DatabaseProvider;
+            DatabaseProvider = options == null ? null : options.DatabaseProvider;
         }
 
         /// <summary>
@@ -109,8 +114,6 @@ namespace SimpleORM
 
         public IDataReader RawSql(string sql)
         {
-            if (sql.Contains("DROP") || sql.Contains("drop"))
-                throw new Exception();
             var reader = DatabaseProvider.RawSql(sql);
             return reader;
         }
@@ -207,7 +210,7 @@ namespace SimpleORM
                 if (!DatabaseProvider.IsTableCreated(tableMetadata))
                 {
                     created = false;
-                    DatabaseProvider.CreateTable(tableMetadata);
+                    DatabaseProvider.CreateTable(tableMetadata, _typeToTableMetadata);
                 }
             }
             DatabaseProvider.Disconnect();

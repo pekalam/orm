@@ -7,7 +7,7 @@ using FastDeepCloner;
 namespace SimpleORM
 {
     /// <summary>
-    /// Reprezentuje encję dodana do ORM.
+    /// Reprezentuje encję dodana do ORM. Przechowuje referencje do utworzonej encji oraz stan
     /// </summary>
     public class EntityEntry
     {

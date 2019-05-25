@@ -19,6 +19,7 @@ namespace SimpleORM
         void DropEntriesFromTable(TableMetadata tableMetadata);
         IDatabase Database { set; }
         void SaveChanges();
+        void AddOrUpdate(object[] entities, TableMetadata tableMetadata);
     }
 
     /// <summary>
@@ -79,13 +80,34 @@ namespace SimpleORM
             }
         }
 
+        public void AddOrUpdate(object[] entities, TableMetadata tableMetadata)
+        {
+            foreach (var entity in entities)
+            {
+                var key = _entityEntries.Keys
+                    .SingleOrDefault(k => EntityFieldAttributeReader.ReadEntityPrimaryKeyValue(k) ==
+                                          EntityFieldAttributeReader.ReadEntityPrimaryKeyValue(entity));
+                if (key != null)
+                {
+                    _entityEntries.Remove(key);
+                    var newEntry = new EntityEntry(entity, tableMetadata);
+                    newEntry.State = EntityState.Unchanged;
+                    _entityEntries.Add(entity, newEntry);
+                }
+                else
+                {
+                    var newEntry = new EntityEntry(entity, tableMetadata);
+                    newEntry.State = EntityState.Unchanged;
+                    _entityEntries.Add(entity, newEntry);
+                }
+            }
+        }
+
         public void DropEntriesFromTable(TableMetadata tableMetadata)
         {
-            foreach (var entityEntry in _entityEntries)
-            {
-                if (entityEntry.Value.TableMetadata.Equals(tableMetadata))
-                    _entityEntries.Remove(entityEntry.Key);
-            }
+            var toRemove = _entityEntries.Where(v => v.Value.TableMetadata.Equals(tableMetadata)).ToArray();
+            for (int i = 0; i < toRemove.Length; i++)
+                _entityEntries.Remove(toRemove[i].Key);
         }
 
         private List<EntityEntry> _GetEntriesToSave()
@@ -114,5 +136,7 @@ namespace SimpleORM
                 entityEntry.State = EntityState.Unchanged;
             }
         }
+
+        
     }
 }

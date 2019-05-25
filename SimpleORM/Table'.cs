@@ -33,6 +33,8 @@ namespace SimpleORM
                 i++;
                 list.Add(obj);
             }
+
+            
             reader.Close();
 
             foreach (var obj in list)
@@ -64,7 +66,7 @@ namespace SimpleORM
                             .GetTableMetadataForEntity(refType);
 
                         var pk = EntityFieldAttributeReader.ReadEntityPrimaryKeyValue(obj);
-                        var fetched = _database.FindAllWhere(refTableMetadata, attribute.ReferencedPk, pk);
+                        var fetched = _database.FindAllWhere(refTableMetadata, attribute.ReferencedFk, pk);
 
                         var objList = targetProp.GetValue(obj);
 
@@ -76,8 +78,10 @@ namespace SimpleORM
 
                 }
             }
-            
-            return list.ToArray();
+
+            var fetchedArray = list.ToArray();
+            _database.StateManager.AddOrUpdate(fetchedArray, Metadata);
+            return fetchedArray;
         }
     }
 }

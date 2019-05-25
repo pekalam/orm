@@ -6,16 +6,21 @@ using System.Threading.Tasks;
 
 namespace SimpleORM.Attributes
 {
+    /// <summary>
+    /// Atrybut pozwalający na utworzenie relacji wiele do jednego między encjami.
+    /// Wymagane jest aby w polu ReferencedFk znajdowała się nazwa pola będąca kluczem obcym
+    /// powiązanym z kluczem głównym encji w której znajduje się atrybut
+    /// </summary>
     [AttributeUsage(AttributeTargets.Property, AllowMultiple = false, Inherited = false)]
     public class ManyToOne : Attribute, IEntityFieldAttribute
     {
-        public ManyToOne(string target, string referencedPk)
+        public ManyToOne(string target, string referencedFk)
         {
-            ReferencedPk = referencedPk;
+            ReferencedFk = referencedFk;
             Target = target;
         }
 
-        public string ReferencedPk { get; }
+        public string ReferencedFk { get; }
 
         public string Target { get; }
 

@@ -32,12 +32,14 @@ namespace SimpleORM.Providers.MsSql
     public class MsSqlTableBuilder
     {
         private TableMetadata _tableMetadata;
+        private Dictionary<Type, TableMetadata> _typeToMetadata;
 
         public MsSqlTableBuilder(){}
 
-        public MsSqlTableBuilder With(TableMetadata tableMetadata)
+        public MsSqlTableBuilder With(TableMetadata tableMetadata, Dictionary<Type, TableMetadata> typeToMetadata)
         {
             _tableMetadata = tableMetadata;
+            _typeToMetadata = typeToMetadata;
             return this;
         }
 
@@ -71,9 +73,11 @@ namespace SimpleORM.Providers.MsSql
                             {
                                 hasfk = true;
                                 var foreignKey = entityFieldAttribute as ForeignKey;
+                                var foreignTableName =
+                                    _typeToMetadata[foreignKey.ReadTargetType(_tableMetadata.EntityType)].Name;
                                 fk.AppendLine($"CONSTRAINT fk_{_tableMetadata.Name}_{name}");
                                 fk.AppendLine($" FOREIGN KEY ({name})");
-                                fk.AppendLine($" REFERENCES [{_tableMetadata.Schema}.{_tableMetadata.Name}] ({foreignKey.Referenced})");
+                                fk.AppendLine($" REFERENCES [{_tableMetadata.Schema}.{foreignTableName}] ({foreignKey.Referenced})");
                             }
                             else if (attribute == typeof(OnUpdate))
                             {

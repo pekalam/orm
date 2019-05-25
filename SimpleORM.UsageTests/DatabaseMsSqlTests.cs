@@ -66,10 +66,13 @@ namespace SimpleORM.UsageTests
         {
             public MovieDatabase(DatabaseOptions opt) : base(opt){  }
 
+            public Table<Actor> Actors { get; set; }
             public Table<Cinema> Cinema { get; set; }
             public Table<Movie> Movies { get; set; }
-            public Table<Actor> Actors { get; set; }
-            public Table<MovieActors> MovieActors {get;set;}
+            public Table<MovieActors> MovieActors { get; set; }
+            
+            
+            
             
         }
 
@@ -118,13 +121,14 @@ namespace SimpleORM.UsageTests
 
             MsSqlDatabaseProvider provider = new MsSqlDatabaseProvider(MsSqlDatabaseProviderUtils.GetConnectionString("test"),
                 MsSqlDatabaseProviderUtils.masterConnectionString);
-            var meta = db.GetTableMetadataForEntity(typeof(Movie));
+            var meta = db.GetTableMetadataForEntity(typeof(Actor));
 
+            db.RawSql("ALTER TABLE [orm.MovieActors] DROP CONSTRAINT fk_MovieActors_ActorId").Close();
             db.DropTable(meta);
             bool tablesCreated = provider.IsTableCreated(meta);
             db.Disconnect();
 
-            Assert.IsNull(db.Movies);
+            Assert.IsNull(db.Actors);
             Assert.IsFalse(tablesCreated);
         }
 
@@ -196,8 +200,17 @@ namespace SimpleORM.UsageTests
                 TestContext.WriteLine($"{reader[0]} {reader[1]}");
                 upd = reader[1].ToString();
             }
+            reader.Close();
+
+            var cin = db.Cinema.Find(1);
+            cin.Name = "1000";
+            db.Cinema.Update(cin);
+            db.SaveChanges();
 
             Assert.IsTrue(upd == "Multikino");
+
+            var c2 = db.Cinema.Find(1);
+            Assert.IsTrue(c2.Name == "1000");
         }
 
 

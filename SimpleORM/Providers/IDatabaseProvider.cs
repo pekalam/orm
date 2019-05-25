@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Data;
 
 namespace SimpleORM.Providers
@@ -12,7 +13,7 @@ namespace SimpleORM.Providers
         bool Connected { get; }
         void InsertEntities(IReadOnlyList<EntityEntry> entries);
         void UpdateEntities(IReadOnlyList<EntityEntry> entries);
-        void CreateTable(TableMetadata tableMetadata);
+        void CreateTable(TableMetadata tableMetadata, Dictionary<Type, TableMetadata> typeToMetadata);
         void DeleteEntities(IReadOnlyList<EntityEntry> entries);
         void DropTable(TableMetadata tableMetadata);
         void CreateDatabase(string name);

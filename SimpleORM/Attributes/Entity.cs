@@ -6,6 +6,9 @@ using System.Threading.Tasks;
 
 namespace SimpleORM.Attributes
 {
+    /// <summary>
+    /// Atrybut obowiązkowy dla każdej klasy mapowanej przez ORM
+    /// </summary>
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
     public class Entity : Attribute, IEntityFieldAttribute
     {

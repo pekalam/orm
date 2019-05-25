@@ -20,10 +20,12 @@ namespace Aplikacja
     [Entity]
     public class UlubioneFilmy
     {
+        [PrimaryKey]
+        public int Id { get; set; }
         [ForeignKey("Film", "Id")]
         public int FilmId { get; set; }
         public Film Film { get; set; }
-        [ForeignKey("CzlonekKlubu", "Id")]
+        [ForeignKey("CzlonekKlubu", "Id", true)]
         public int CzlonekKlubuId { get; set; }
         public CzlonekKlubu CzlonekKlubu { get; set; }
     }
@@ -48,10 +50,18 @@ namespace Aplikacja
         /*Oznacza pole LokalizacjaId jako klucz obcy powiązany z kluczem
          głównym Id w tabeli Lokalizacja.*/
         [ForeignKey(target:"MiejsceZamieszkania", referenced:"Id")]
+        [OnDelete("CASCADE")]
+        [OnUpdate("CASCADE")]
         public int LokalizacjaId { get; set; }
+
         /*Pole wiązane z rekordem w tabeli Lokalizacja z kluczem
         głównym równym LokalizacjaId podczas pobierania rekordu z tabeli CzlonekKlubu*/
         public Lokalizacja MiejsceZamieszkania { get; set; }
+        
+        /*Lista posiadająca ten atrybut jest wypelniana tymi rekordami z tabeli UlubioneFilmy,
+         ktorych klucze CzlonekKlubuId odpowiadają kluczowi CzlonekKlubu.Id*/
+        [ManyToOne("UlubioneFilmy", "CzlonekKlubuId")]
+        public List<UlubioneFilmy> UlubioneFilmy { get; } = new List<UlubioneFilmy>();
     }
 
     /*Reprezentuje bazę danych KlubFilmowy i zawiera deklaracje tabel z tej bazy*/
@@ -60,6 +70,8 @@ namespace Aplikacja
         public KlubFilmowy(DatabaseOptions options) : base(options) {}
         public Table<Lokalizacja> Lokalizacja { get; set; }
         public Table<CzlonekKlubu> CzlonekKlubu { get; set; }
+        public Table<Film> Filmy { get; set; }
+        public Table<UlubioneFilmy> UlubioneFilmy { get; set; }
     }
 
     class Program
@@ -76,14 +88,56 @@ namespace Aplikacja
                 .Build();
 
             var db = new KlubFilmowy(options);
+            db.EnsureCreated();
 
+
+            /* Dodawanie i usuwanie
             var lokalizacja1 = new Lokalizacja()
-                {Id = 1, Miasto = "Rzeszów", Ulica = "Cieplińskiego 8", Wojewodztwo = "Podkarpackie"};
-            var czlonekKlubu1 = new CzlonekKlubu() {Id = 1, Imie = "Jan", LokalizacjaId = 1, Nazwisko = "Nowak"};
+                { Id = 1, Miasto = "Rzeszów",
+                    Ulica = "Cieplińskiego 8",
+                    Wojewodztwo = "Podkarpackie"};
+            var czlonekKlubu1 = new CzlonekKlubu()
+                { Id = 1, Imie = "Jan",
+                    LokalizacjaId = 1,
+                    Nazwisko = "Nowak"};
 
-            db.Lokalizacja.Add(lokalizacja1);
+            db.Lokalizacja.Add(lokalizacja1); //powiązanie obiektu z ORM
             db.CzlonekKlubu.Add(czlonekKlubu1);
+            db.SaveChanges(); // zapisanie obiektów w bazie danych
+
+            db.Lokalizacja.Remove(lokalizacja1);
             db.SaveChanges();
+            db.UlubioneFilmy.Drop();
+            db.CzlonekKlubu.Drop(); */
+
+
+            /*var cz1 = db.CzlonekKlubu.Find(1);
+            Console.WriteLine($"Imie: {cz1.Imie} Nazwisko: {cz1.Nazwisko}");
+            Console.WriteLine("Ulubione filmy: ");
+            foreach (var ulubioneFilmy in cz1.UlubioneFilmy)
+            {
+                Console.WriteLine($"{ulubioneFilmy.Film.Tytul}");
+            }*/
+
+            /*
+            var cz2 = db.CzlonekKlubu.FindWhere("Imie", "Mateusz");
+            Console.WriteLine($"Imie: {cz2.Imie} Nazwisko: {cz2.Nazwisko}");
+            Console.WriteLine("Ulubione filmy: ");
+            foreach (var ulubioneFilmy in cz2.UlubioneFilmy)
+            {
+                Console.WriteLine($"{ulubioneFilmy.Film.Tytul}");
+            }*/
+
+
+            /*var sql =
+                "select Imie, Nazwisko, Miasto, LokalizacjaId from [orm.CzlonekKlubu] inner join [orm.Lokalizacja] on [orm.CzlonekKlubu].Id = [orm.Lokalizacja].Id";
+            var reader = db.RawSql(sql);
+            while (reader.Read())
+            {
+                Console.WriteLine($"Imie: {reader.GetString(0)} Nazwisko: {reader.GetString(1)}" +
+                                  $" Miasto: {reader.GetString(2)} Id lokalizacji: {reader.GetInt32(3)}");
+            }
+            reader.Close()*/
 
 
 
