@@ -146,7 +146,8 @@ namespace SimpleORM
 
         public static object ReadEntityPrimaryKeyValue(object entity)
         {
-            return entity.GetType().GetProperty(ReadEntityPrimaryKeyName(entity.GetType())).GetValue(entity);
+            var pkName = ReadEntityPrimaryKeyName(entity.GetType());
+            return entity.GetType().GetProperty(pkName).GetValue(entity);
         }
 
     }

@@ -43,11 +43,9 @@ namespace SimpleORM
         private string _schemaName;
 
         /// <summary>
-        /// Pary typ POCO przechowywany w tabeli - metadane tabeli
+        /// Pary typ przechowywany w tabeli - metadane tabeli
         /// </summary>
         private Dictionary<Type, TableMetadata> _typeToTableMetadata = new Dictionary<Type, TableMetadata>();
-
-        private Dictionary<TableMetadata ,PropertyInfo> _tableMetadataToPropertyInfo = new Dictionary<TableMetadata, PropertyInfo>();
 
         /// <summary>
         /// Tylko do celów testowych - brak domyślnego providera
@@ -93,9 +91,8 @@ namespace SimpleORM
                             null, new object[] {this, propertyInfo.Name}, null);
                         propertyInfo.SetValue(this, tableInstance);
                         var tableMetadata = (TableMetadata)tableInstance.GetType().GetProperty("Metadata").GetValue(tableInstance);
-
+                        
                         _typeToTableMetadata.Add(tableEntityType, tableMetadata);
-                        _tableMetadataToPropertyInfo.Add(tableMetadata, propertyInfo);
                         tables++;
                     }
                 }
@@ -131,25 +128,25 @@ namespace SimpleORM
 
         public object Find(TableMetadata tableMetadata, object primaryKey)
         {
-            var table = _tableMetadataToPropertyInfo[tableMetadata].GetValue(this);
+            var table = GetType().GetProperty(tableMetadata.Name).GetValue(this);
             return table.GetType().GetMethod("Find").Invoke(table,new object[]{primaryKey});
         }
 
         public object[] FindAll(TableMetadata tableMetadata, object primaryKey)
         {
-            var table = _tableMetadataToPropertyInfo[tableMetadata].GetValue(this);
+            var table = GetType().GetProperty(tableMetadata.Name).GetValue(this);
             return (object[]) table.GetType().GetMethod("FindAll").Invoke(table, new object[] { primaryKey });
         }
 
         public object FindWhere(TableMetadata tableMetadata, string field, object value)
         {
-            var table = _tableMetadataToPropertyInfo[tableMetadata].GetValue(this);
+            var table = GetType().GetProperty(tableMetadata.Name).GetValue(this);
             return table.GetType().GetMethod("FindWhere").Invoke(table, new object[] { field, value });
         }
 
         public object[] FindAllWhere(TableMetadata tableMetadata, string field, object value)
         {
-            var table = _tableMetadataToPropertyInfo[tableMetadata].GetValue(this);
+            var table = GetType().GetProperty(tableMetadata.Name).GetValue(this);
             return (object[]) table.GetType().GetMethod("FindAllWhere").Invoke(table, new object[] { field, value});
         }
 
@@ -239,8 +236,7 @@ namespace SimpleORM
                 DatabaseProvider.DropTable(tableMetadata);
                 StateManager.DropEntriesFromTable(tableMetadata);
 
-                _tableMetadataToPropertyInfo[tableMetadata].SetValue(this, null);
-                _tableMetadataToPropertyInfo.Remove(tableMetadata);
+                GetType().GetProperty(tableMetadata.Name).SetValue(this,null);
                 _typeToTableMetadata.Remove(tableMetadata.EntityType);
                 return true;
             }

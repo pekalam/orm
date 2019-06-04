@@ -32,7 +32,7 @@ namespace SimpleORM.Providers.MsSql
                 int i = 1;
                 foreach (var pair in _entityEntry.TableMetadata.EntityPropertyNameToType)
                 {
-                    var value = _entityEntry.TrackedEntity.GetType().GetProperty(pair.Key).GetValue(_entityEntry.TrackedEntity);
+                    var value = _entityEntry.FieldValue(pair.Key);
                     if(i != _entityEntry.TableMetadata.EntityPropertyNameToType.Count)
                         sql.Append($"{pair.Key}='{value}' AND ");
                     else

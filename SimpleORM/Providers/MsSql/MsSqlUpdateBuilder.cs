@@ -28,7 +28,6 @@ namespace SimpleORM.Providers.MsSql
         public string Build()
         {
             var entityTrackedFields = _entityEntry.TableMetadata.EntityPropertyNameToType;
-            var entityFieldAttributes = _entityEntry.TableMetadata.EntityPropertyAttributes;
             int i = 1;
             var sql = new StringBuilder();
             sql.Append($"UPDATE [{_entityEntry.TableMetadata.Schema}.{_entityEntry.TableMetadata.Name}] SET ");
@@ -36,7 +35,7 @@ namespace SimpleORM.Providers.MsSql
             {
                 var name = entityTrackedField.Key;
                 var type = entityTrackedField.Value;
-                var value = _entityEntry.TrackedEntity.GetType().GetProperty(name).GetValue(_entityEntry.TrackedEntity);
+                var value = _entityEntry.FieldValue(name);
                 if (type == typeof(string))
                 {
                     sql.Append($"[{name}]='{value}'");
@@ -56,8 +55,7 @@ namespace SimpleORM.Providers.MsSql
             var primaryKeyName = EntityFieldAttributeReader.ReadEntityPrimaryKeyName(_entityEntry.TrackedEntity.GetType());
             if (!string.IsNullOrEmpty(primaryKeyName))
             {
-                var primaryKey = _entityEntry.TrackedEntity.GetType().GetProperty(primaryKeyName)
-                    .GetValue(_entityEntry.TrackedEntity);
+                var primaryKey = _entityEntry.FieldValue(primaryKeyName);
                 if (entityTrackedFields[primaryKeyName] == typeof(string))
                 {
                     sql.Append($"[{primaryKeyName}]='{primaryKey}'");
@@ -73,7 +71,7 @@ namespace SimpleORM.Providers.MsSql
                 foreach (var entityTrackedField in entityTrackedFields)
                 {
                     var name = entityTrackedField.Key;
-                    var value = _entityEntry.TrackedEntity.GetType().GetProperty(name).GetValue(_entityEntry.OriginalData);
+                    var value = _entityEntry.OriginalFieldValue(name);
                     sql.Append($"[{name}]={value}");
                     if (i != entityTrackedFields.Count)
                         sql.Append(" AND ");

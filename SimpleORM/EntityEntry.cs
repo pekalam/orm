@@ -1,11 +1,29 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Runtime.Serialization.Formatters.Binary;
 using FastDeepCloner;
+using SimpleORM.Attributes;
 
 namespace SimpleORM
 {
+    public static class EntityEntryExtensions
+    {
+        public static object FieldValue(this EntityEntry entityEntry, string propName)
+        {
+            return entityEntry.TrackedEntity.GetType().GetProperty(propName).GetValue(
+                entityEntry.TrackedEntity);
+        }
+
+        public static object OriginalFieldValue(this EntityEntry entityEntry, string propName)
+        {
+            return entityEntry.TrackedEntity.GetType().GetProperty(propName).GetValue(
+                entityEntry.OriginalData);
+        }
+
+    }
+
     /// <summary>
     /// Reprezentuje encję obserwowaną przez ORM. Przechowuje referencje do utworzonego obiektu oraz jego stan EntityState
     /// </summary>
