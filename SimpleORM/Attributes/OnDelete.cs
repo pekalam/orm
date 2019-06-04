@@ -9,6 +9,10 @@ namespace SimpleORM.Attributes
     public class OnDelete : Attribute, IEntityFieldAttribute
     {
         private string _onDelete;
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="onDelete">Jedna z wartości: CASCADE / SET NULL / NO ACTION / SET DEFAULT</param>
         public OnDelete(string onDelete)
         {
             _onDelete = onDelete;

@@ -9,8 +9,17 @@ namespace SimpleORM.Attributes
     [AttributeUsage(AttributeTargets.Property, AllowMultiple = false)]
     public class ForeignKey : Attribute, IEntityFieldAttribute
     {
+        /// <summary>
+        /// Nazwa właściwości w klasie która będzie wypełniana danymi podczas zapytania
+        /// </summary>
         public string Target { get; }
+        /// <summary>
+        /// Nazwa klucza głównego z którym powiązany jest klucz obcy
+        /// </summary>
         public string Referenced { get; }
+        /// <summary>
+        /// Wymagane przy relacji jeden-do-wielu aby uniknąć cyklicznej zależności
+        /// </summary>
         public bool Ignore { get; }
 
         public ForeignKey(string target, string referenced = "Id", bool ignore = false)
@@ -20,6 +29,11 @@ namespace SimpleORM.Attributes
             Ignore = ignore;
         }
 
+        /// <summary>
+        /// Sprawdza czy istnieje cykliczna zależność między encjami
+        /// </summary>
+        /// <param name="entityType"></param>
+        /// <param name="referencedType"></param>
         private void _CheckRecursiveReferences(Type entityType, Type referencedType)
         {
             var referencedTypeAttributes = EntityFieldAttributeReader.ReadEntityFieldAttributes(referencedType);
@@ -47,6 +61,10 @@ namespace SimpleORM.Attributes
             }
         }
 
+        /// <summary>
+        /// Sprawdza czy atrybut został przypisany w odpowiedni sposób do właściwości
+        /// </summary>
+        /// <param name="enityType"></param>
         public void Validate(Type enityType)
         {
             var targetProp = enityType.GetProperty(Target);

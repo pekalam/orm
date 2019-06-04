@@ -90,27 +90,37 @@ namespace Aplikacja
             var db = new KlubFilmowy(options);
             db.EnsureCreated();
 
-
-            /* Dodawanie i usuwanie
             var lokalizacja1 = new Lokalizacja()
-                { Id = 1, Miasto = "Rzeszów",
-                    Ulica = "Cieplińskiego 8",
-                    Wojewodztwo = "Podkarpackie"};
+            {
+                Id = 1,
+                Miasto = "Rzeszów",
+                Ulica = "Cieplińskiego 8",
+                Wojewodztwo = "Podkarpackie"
+            };
             var czlonekKlubu1 = new CzlonekKlubu()
-                { Id = 1, Imie = "Jan",
-                    LokalizacjaId = 1,
-                    Nazwisko = "Nowak"};
+            {
+                Id = 1,
+                Imie = "Jan",
+                LokalizacjaId = 1,
+                Nazwisko = "Nowak"
+            };
 
+            //Dodawanie
+            /*
             db.Lokalizacja.Add(lokalizacja1); //powiązanie obiektu z ORM
             db.CzlonekKlubu.Add(czlonekKlubu1);
             db.SaveChanges(); // zapisanie obiektów w bazie danych
+            */
 
+            //Usuwanie
+            /*
             db.Lokalizacja.Remove(lokalizacja1);
             db.SaveChanges();
             db.UlubioneFilmy.Drop();
             db.CzlonekKlubu.Drop(); */
 
 
+            //Wyszukiwanie
             /*var cz1 = db.CzlonekKlubu.Find(1);
             Console.WriteLine($"Imie: {cz1.Imie} Nazwisko: {cz1.Nazwisko}");
             Console.WriteLine("Ulubione filmy: ");
@@ -129,6 +139,7 @@ namespace Aplikacja
             }*/
 
 
+            //Wykonanie dowolnego SQL
             /*var sql =
                 "select Imie, Nazwisko, Miasto, LokalizacjaId from [orm.CzlonekKlubu] inner join [orm.Lokalizacja] on [orm.CzlonekKlubu].Id = [orm.Lokalizacja].Id";
             var reader = db.RawSql(sql);

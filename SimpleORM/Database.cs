@@ -107,11 +107,22 @@ namespace SimpleORM
             }
         }
 
+        public string Schema => _schemaName;
+        public string Name => _databaseName;
+
+        /// <summary>
+        /// Rozlaczenie polaczenia z baza danych
+        /// </summary>
         public void Disconnect()
         {
             DatabaseProvider.Disconnect();
         }
 
+        /// <summary>
+        /// Wykonanie dowolnego zapytania przy pomocy SQL
+        /// </summary>
+        /// <param name="sql">Wyrazenie SQL</param>
+        /// <returns></returns>
         public IDataReader RawSql(string sql)
         {
             var reader = DatabaseProvider.RawSql(sql);
@@ -142,8 +153,7 @@ namespace SimpleORM
             return (object[]) table.GetType().GetMethod("FindAllWhere").Invoke(table, new object[] { field, value});
         }
 
-        public string Schema => _schemaName;
-        public string Name => _databaseName;
+        
 
         /// <summary>
         /// Zapisuje zmiany w bazie danych
@@ -179,7 +189,7 @@ namespace SimpleORM
         }
 
         /// <summary>
-        /// Zwraca metadane tabeli dla podanej encji (POCO)
+        /// Zwraca metadane tabeli dla podanej encji
         /// </summary>
         /// <param name="entity"></param>
         /// <returns> Metadane tabeli powiazanej z encją </returns>

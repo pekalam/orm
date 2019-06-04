@@ -57,9 +57,14 @@ namespace SimpleORM.Providers.MsSql
         }
     }
 
+    /// <summary>
+    /// Dostawca bazy danych dla MS SQL Server
+    /// </summary>
     public class MsSqlDatabaseProvider : IDatabaseProvider
     {
+        // Połączenie z bazą danych
         private SqlConnection _dbConnection;
+        // Obiekty generujące SQL dla odpowiednich zapytan
         private MsSqlInsertBuilder _insertBuilder = new MsSqlInsertBuilder();
         private MsSqlUpdateBuilder _updateBuilder = new MsSqlUpdateBuilder();
         private MsSqlDeleteBuilder _deleteBuilder = new MsSqlDeleteBuilder();

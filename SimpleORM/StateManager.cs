@@ -24,6 +24,7 @@ namespace SimpleORM
 
     /// <summary>
     /// Zarządza stanem wszystkich encji które zostały powiązane z ORM.
+    /// Metody Add, Update, Remove itd są wywoływane przez klasę Database
     /// </summary>
     public class StateManager : IStateManager
     {

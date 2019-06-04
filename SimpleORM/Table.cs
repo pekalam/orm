@@ -4,13 +4,13 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
-using Castle.DynamicProxy.Generators.Emitters;
-using log4net.Util;
-using NLog.Win32.LayoutRenderers;
 using SimpleORM.Attributes;
 
 namespace SimpleORM
 {
+    /// <summary>
+    /// Pzechowuje metadane tabeli
+    /// </summary>
     public class TableMetadata
     {
         public TableMetadata(string par1, 
@@ -24,9 +24,14 @@ namespace SimpleORM
             Schema = schema;
         }
 
-        //TODO
+        /// <summary>
+        /// Nazwa schematu powiazanego z tabelą
+        /// </summary>
         public string Schema { get;}
 
+        /// <summary>
+        /// Nazwa tabeli
+        /// </summary>
         public string Name { get; }
 
         /// <summary>
@@ -39,11 +44,14 @@ namespace SimpleORM
         /// </summary>
         public IReadOnlyDictionary<string, List<IEntityFieldAttribute>> EntityPropertyAttributes { get; }
 
+        /// <summary>
+        /// Pary nazwa pola encji - typ encji
+        /// </summary>
         public IReadOnlyDictionary<string, Type> EntityPropertyNameToType { get; }
     }
 
     /// <summary>
-    /// Reprezentuje tabelę w bazie danych. Podstawowa klasa SimpleORM
+    /// Reprezentuje tabelę w bazie danych. Podstawowa klasa SimpleORM.
     /// </summary>
     /// <typeparam name="T"></typeparam>
     public partial class Table<T> where T : class,new()
@@ -81,7 +89,7 @@ namespace SimpleORM
         }
 
         /// <summary>
-        /// Usuwa encję z ORM
+        /// Zmienia stan encji na umożliwiający zapisanie zmian w bazie danych
         /// </summary>
         /// <param name="entity"></param>
         /// <returns></returns>
@@ -90,25 +98,20 @@ namespace SimpleORM
             return _database.StateManager.Update(entity);
         }
 
+        /// <summary>
+        /// Zmienia stan encji na umożliwiający usunięcie z bazy
+        /// </summary>
+        /// <param name="entity"></param>
+        /// <returns></returns>
         public EntityEntry Remove(T entity)
         {
             return _database.StateManager.Remove(entity);
         }
 
+        
         public void Drop()
         {
             _database.DropTable(Metadata);
-        }
-
-        public T Find(object primaryKey)
-        {
-            var pkName = EntityFieldAttributeReader.ReadEntityPrimaryKeyName(Metadata.EntityType);
-            return _FindWhere(pkName, primaryKey).SingleOrDefault();
-        }
-
-        public T FindWhere(string field, object value)
-        {
-            return _FindWhere(field, value).SingleOrDefault();
         }
 
         /// <summary>
@@ -117,11 +120,11 @@ namespace SimpleORM
         /// </summary>
         /// <param name="field">Nazwa porównywanego pola</param>
         /// <param name="value">Wartość pola</param>
-        /// <returns>Znalezione rekordy</returns>
-        public T[] FindAll(object primaryKey)
+        /// <returns>Znaleziony rekord</returns>
+        public T Find(object primaryKey)
         {
             var pkName = EntityFieldAttributeReader.ReadEntityPrimaryKeyName(Metadata.EntityType);
-            return _FindWhere(pkName, primaryKey);
+            return _FindWhere(pkName, primaryKey).SingleOrDefault();
         }
 
         /// <summary>
@@ -130,7 +133,20 @@ namespace SimpleORM
         /// </summary>
         /// <param name="field">Nazwa porównywanego pola</param>
         /// <param name="value">Wartość pola</param>
-        /// <returns>Znalezione rekordy</returns>
+        /// <returns>Znalezione rekord</returns>
+        public T FindWhere(string field, object value)
+        {
+            return _FindWhere(field, value).SingleOrDefault();
+        }
+
+        
+        public T[] FindAll(object primaryKey)
+        {
+            var pkName = EntityFieldAttributeReader.ReadEntityPrimaryKeyName(Metadata.EntityType);
+            return _FindWhere(pkName, primaryKey);
+        }
+
+        
         public T[] FindAllWhere(string field, object value)
         {
             return _FindWhere(field, value);

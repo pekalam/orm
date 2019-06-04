@@ -7,7 +7,7 @@ using FastDeepCloner;
 namespace SimpleORM
 {
     /// <summary>
-    /// Reprezentuje encję dodana do ORM. Przechowuje referencje do utworzonej encji oraz stan
+    /// Reprezentuje encję obserwowaną przez ORM. Przechowuje referencje do utworzonego obiektu oraz jego stan EntityState
     /// </summary>
     public class EntityEntry
     {
@@ -25,7 +25,7 @@ namespace SimpleORM
         public EntityState State { get; set; }
 
         /// <summary>
-        /// POCO reprezentowane przez EntityEntry
+        /// Obiekt klasy reprezentowanej przez EntityEntry
         /// </summary>
         public object TrackedEntity { get; }
 
