@@ -77,6 +77,13 @@ namespace SimpleORM.UsageTests
             
         }
 
+        [Entity]
+        class TempClass
+        {
+            public string Name { get; set; }
+            public DateTime DateOfBirth { get; set; }
+        }
+
         private MovieDatabase CreateDatabase()
         {
             var connectionString =
@@ -91,18 +98,26 @@ namespace SimpleORM.UsageTests
             return new MovieDatabase(options);
         }
 
+
         [TearDown]
         public void TearDown()
         {
             MsSqlDatabaseProviderUtils.DropDatabase("test");
+            db = null;
         }
+
+        [SetUp]
+        public void SetUp()
+        {
+            db = CreateDatabase();
+            db.EnsureCreated();
+        }
+
+        private MovieDatabase db;
 
         [Test]
         public void Creates_database()
         {
-            var db = CreateDatabase();
-            db.EnsureCreated();
-            
             MsSqlDatabaseProvider provider = new MsSqlDatabaseProvider(MsSqlDatabaseProviderUtils.GetConnectionString("test"),
                 MsSqlDatabaseProviderUtils.masterConnectionString);
             bool created = provider.IsDatabaseCreated("test");
@@ -117,9 +132,6 @@ namespace SimpleORM.UsageTests
         [Test]
         public void Drops_table()
         {
-            var db = CreateDatabase();
-            db.EnsureCreated();
-
             MsSqlDatabaseProvider provider = new MsSqlDatabaseProvider(MsSqlDatabaseProviderUtils.GetConnectionString("test"),
                 MsSqlDatabaseProviderUtils.masterConnectionString);
             var meta = db.GetTableMetadataForEntity(typeof(Actor));
@@ -136,9 +148,6 @@ namespace SimpleORM.UsageTests
         [Test]
         public void Inserts_entity()
         {
-            var db = CreateDatabase();
-            db.EnsureCreated();
-
             var actor = new Actor() {DateOfBirth = DateTime.Today, Id = 1, Name = "Jan'"};
             db.Actors.Add(actor);
             db.SaveChanges();
@@ -150,16 +159,42 @@ namespace SimpleORM.UsageTests
                 i++;
                 TestContext.WriteLine($"{reader[0]} {reader[1]} {reader[2]}");
             }
+            reader.Close();
 
             Assert.IsTrue(i != 0);
         }
 
         [Test]
+        public void Executes_raw_sql1()
+        {
+            var rdr = db.RawSql("SELECT COUNT(*) FROM [orm.Actors]");
+            int count = -1;
+            while (rdr.Read())
+            {
+                count = rdr.GetInt32(0);
+            }
+            rdr.Close();
+
+            Assert.IsTrue(count == 0);
+        }
+
+        [Test]
+        public void Executes_raw_sql2()
+        {
+            var actor = new Actor() { DateOfBirth = DateTime.Today, Id = 1, Name = "Andrzej" };
+            db.Actors.Add(actor);
+            db.SaveChanges();
+
+            var results = db.RawSql<TempClass>("SELECT Name, DateOfBirth FROM [orm.Actors]");
+
+            Assert.IsTrue(results.Count > 0);
+            Assert.IsTrue(results[0].Name == "Andrzej");
+            Assert.IsTrue(results[0].DateOfBirth.Equals(DateTime.Today));
+        }
+
+        [Test]
         public void Deletes_entity()
         {
-            var db = CreateDatabase();
-            db.EnsureCreated();
-
             var cinema = new Cinema() { Id = 1, Name = "Helios" };
             db.Cinema.Add(cinema);
             db.SaveChanges();
@@ -181,9 +216,6 @@ namespace SimpleORM.UsageTests
         [Test]
         public void Updates_entity()
         {
-            var db = CreateDatabase();
-            db.EnsureCreated();
-
             var cinema = new Cinema() { Id = 1, Name = "Helios" };
             db.Cinema.Add(cinema);
             db.SaveChanges();
@@ -217,9 +249,6 @@ namespace SimpleORM.UsageTests
         [Test]
         public void Finds_entity()
         {
-            var db = CreateDatabase();
-            db.EnsureCreated();
-
             var cinema = new Cinema() { Id = 1, Name = "Helios" };
             db.Cinema.Add(cinema);
             db.SaveChanges();
@@ -234,27 +263,8 @@ namespace SimpleORM.UsageTests
         }
 
         [Test]
-        public void FindsDb_entity()
+        public void Finds_entities_with_one_to_one_relationship()
         {
-            var db = CreateDatabase();
-            db.EnsureCreated();
-
-            var cinema = new Cinema() { Id = 1, Name = "Helios" };
-            db.Cinema.Add(cinema);
-            db.SaveChanges();
-
-            var ci = 
-                (Cinema)db.Find(db.GetTableMetadataForEntity(cinema), 1);
-
-            Assert.IsTrue(ci.Name == "Helios");
-        }
-
-        [Test]
-        public void Finds_entity_one_to_one()
-        {
-            var db = CreateDatabase();
-            db.EnsureCreated();
-
             var cinema = new Cinema() {Id = 1, Name="Helios"};
             var movie2 = new Movie() { CinemaId = 1, Id = 1, Title = "Movie2" };
 
@@ -270,11 +280,8 @@ namespace SimpleORM.UsageTests
         }
 
         [Test]
-        public void Finds_entity_many_to_one()
+        public void Finds_entities_with_many_to_one_relationship()
         {
-            var db = CreateDatabase();
-            db.EnsureCreated();
-
             var cinema = new Cinema() { Id = 1, Name = "Helios" };
             var movie2 = new Movie() { CinemaId = 1, Id = 1, Title = "Movie2" };
             var actor1 = new Actor() {Id = 1, Name = "11"};

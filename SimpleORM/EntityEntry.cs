@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.IO;
 using System.Linq;
 using System.Runtime.Serialization.Formatters.Binary;
@@ -12,7 +13,12 @@ namespace SimpleORM
     {
         private static string _SqlStr(object ob)
         {
-            return ob.ToString().Replace("'", "''");
+            var str = ob.ToString();
+            if (ob is double)
+            {
+                str = str.Replace(',', '.');
+            }
+            return str.Replace("'", "''");
         }
 
         public static string FieldValue(this object obj, string propName)
@@ -25,6 +31,26 @@ namespace SimpleORM
 
         public static string OriginalFieldValue(this EntityEntry entityEntry, string propName) =>
             FieldValue(entityEntry.OriginalData, propName);
+
+        public static List<T> MapResults<T>(this IDataReader reader, IReadOnlyDictionary<string, Type> trackedProps) where T: class,new()
+        {
+            List<T> list = new List<T>();
+            int i = 0;
+            while (reader.Read())
+            {
+                T obj = new T();
+                int j = 0;
+                foreach (var kv in trackedProps)
+                {
+                    var fieldVal = reader[j];
+                    obj.GetType().GetProperty(kv.Key).SetValue(obj, fieldVal);
+                    j++;
+                }
+                i++;
+                list.Add(obj);
+            }
+            return list;
+        }
 
     }
 

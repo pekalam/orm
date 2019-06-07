@@ -30,7 +30,7 @@ namespace SimpleORM.Attributes
         }
 
         /// <summary>
-        /// Sprawdza czy istnieje cykliczna zależność między encjami
+        /// Sprawdza czy istnieje cykliczna zależność referencyjna między tabelami
         /// </summary>
         /// <param name="entityType"></param>
         /// <param name="referencedType"></param>

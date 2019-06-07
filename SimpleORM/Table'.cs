@@ -26,21 +26,7 @@ namespace SimpleORM
 
             //Przypisanie uzyskanych danych do obiektu
 
-            List<T> list = new List<T>();
-            int i = 0;
-            while (reader.Read())
-            {
-                T obj = new T();
-                int j = 0;
-                foreach (var kv in trackedProps)
-                {
-                    var fieldVal = reader[j];
-                    obj.GetType().GetProperty(kv.Key).SetValue(obj, fieldVal);
-                    j++;
-                }
-                i++;
-                list.Add(obj);
-            }
+            var list = reader.MapResults<T>(trackedProps);
             reader.Close();
 
             
@@ -56,7 +42,7 @@ namespace SimpleORM
                         if (fk == null || fk.Ignore)
                             continue;
                         var targetProp = obj.GetType().GetProperty(fk.Target);
-                        var refId = obj.GetType().GetProperty(propName).GetValue(obj);
+                        var refId = obj.FieldValue(propName);
                         //Wykonanie zapytania
                         var refEntity = _database.Find(_database.GetTableMetadataForEntity(targetProp.PropertyType), refId);
 

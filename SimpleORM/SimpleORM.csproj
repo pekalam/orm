@@ -56,7 +56,6 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Attributes\AutoIncrement.cs" />
     <Compile Include="Attributes\Entity.cs" />
     <Compile Include="Attributes\IEntityFieldAttribute.cs" />
     <Compile Include="Attributes\ManyToOne.cs" />

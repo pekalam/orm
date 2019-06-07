@@ -126,6 +126,14 @@ namespace SimpleORM
             return reader;
         }
 
+        public List<T> RawSql<T>(string sql) where T:class,new()
+        {
+            var reader = DatabaseProvider.RawSql(sql);
+            var res = reader.MapResults<T>(EntityFieldAttributeReader.ReadEntityTrackedFields(typeof(T)));
+            reader.Close();
+            return res;
+        }
+
         public object Find(TableMetadata tableMetadata, object primaryKey)
         {
             var table = GetType().GetProperty(tableMetadata.Name).GetValue(this);
@@ -202,7 +210,7 @@ namespace SimpleORM
         /// <summary>
         /// Tworzy bazę danych, schemat i tabele jeśli nie zostały one wcześniej utworzone
         /// </summary>
-        /// <returns> Czy schemat lub tabele zostały utworzone </returns>
+        /// <returns> Jeżeli schemat lub tabele zostały utworzone zwraca true. W przeciwnym wypadku false. </returns>
         public bool EnsureCreated()
         {
             bool created = true;

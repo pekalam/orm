@@ -29,7 +29,7 @@ namespace SimpleORM.Providers.MsSql
             sql.Append($"INSERT INTO [{_entityEntry.TableMetadata.Schema}.{_entityEntry.TableMetadata.Name}] VALUES (");
             foreach (var pair in _entityEntry.TableMetadata.EntityPropertyNameToType)
             {
-                var value = _entityEntry.FieldValue(pair.Key).ToString();
+                var value = _entityEntry.FieldValue(pair.Key);
                 sql.Append($"'{value}'");
                 if (i != _entityEntry.TableMetadata.EntityPropertyNameToType.Count)
                     sql.Append(", ");

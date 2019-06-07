@@ -117,6 +117,7 @@ namespace SimpleORM.Providers.MsSql
 
         public void InsertEntities(IReadOnlyList<EntityEntry> entries)
         {
+            _ExecuteSQL("SET DATEFORMAT dmy;");
             foreach (var entry in entries)
                 _ExecuteSQL(_insertBuilder.With(entry).Build());
         }

@@ -12,13 +12,13 @@ namespace SimpleORM.Providers.MsSql
         {
             [typeof(string)] = "text",
             [typeof(int)] = "int",
-            [typeof(DateTime)] = "datetime2"
+            [typeof(DateTime)] = "datetime2",
+            [typeof(double)] = "float"
         };
 
         public static Dictionary<Type, string> AttributeMap = new Dictionary<Type, string>()
         {
             [typeof(PrimaryKey)] = "PRIMARY KEY",
-            [typeof(AutoIncrement)] = "IDENTITY",
             [typeof(NotNull)] = "NOT NULL"
         };
 

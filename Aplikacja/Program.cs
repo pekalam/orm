@@ -9,12 +9,14 @@ using SimpleORM.Providers.MsSql;
 
 namespace Aplikacja
 {
-    [Entity]
+    [Entity] //wymagany atrybut dla klasy reprezentujacej tabele
     public class Film
     {
         [PrimaryKey] // oznacza pole (właściwość) Id jako klucz główny
         public int Id { get; set; }
+        [NotNull] // dodaje ograniczenie NOT NULL dla kolumny
         public string Tytul { get; set; }
+        public double Ocena { get; set; }
     }
 
     [Entity]
@@ -35,6 +37,7 @@ namespace Aplikacja
     {
         [PrimaryKey]
         public int Id { get; set; }
+        [NotNull]
         public string Miasto { get; set; }
         public string Ulica { get; set; }
         public string Wojewodztwo { get; set; }
@@ -45,13 +48,18 @@ namespace Aplikacja
     {
         [PrimaryKey]
         public int Id { get; set; }
+        [NotNull]
         public string Imie { get; set; }
+        [NotNull]
         public string Nazwisko { get; set; }
+        [NotNull]
+        public DateTime DataUrodzenia { get; set; }
         /*Oznacza pole LokalizacjaId jako klucz obcy powiązany z kluczem
          głównym Id w tabeli Lokalizacja.*/
         [ForeignKey(target:"MiejsceZamieszkania", referenced:"Id")]
         [OnDelete("CASCADE")]
         [OnUpdate("CASCADE")]
+        [NotNull]
         public int LokalizacjaId { get; set; }
 
         /*Pole wiązane z rekordem w tabeli Lokalizacja z kluczem
@@ -74,6 +82,12 @@ namespace Aplikacja
         public Table<UlubioneFilmy> UlubioneFilmy { get; set; }
     }
 
+    [Entity]
+    public class Wynik //klasa przechowująca wynik zapytania
+    {
+        public int liczba { get; set; }
+    }
+
     class Program
     {
         static void Main(string[] args)
@@ -90,6 +104,8 @@ namespace Aplikacja
             var db = new KlubFilmowy(options);
             db.EnsureCreated();
 
+            //Dodawanie
+            /*
             var lokalizacja1 = new Lokalizacja()
             {
                 Id = 1,
@@ -102,11 +118,11 @@ namespace Aplikacja
                 Id = 1,
                 Imie = "Jan",
                 LokalizacjaId = 1,
-                Nazwisko = "Nowak"
+                Nazwisko = "Nowak",
+                DataUrodzenia = new DateTime(1998, 1, 1)
             };
 
-            //Dodawanie
-            /*
+            
             db.Lokalizacja.Add(lokalizacja1); //powiązanie obiektu z ORM
             db.CzlonekKlubu.Add(czlonekKlubu1);
             db.SaveChanges(); // zapisanie obiektów w bazie danych
@@ -120,7 +136,63 @@ namespace Aplikacja
             db.CzlonekKlubu.Drop(); */
 
 
+
             //Wyszukiwanie
+            #region Potrzebne_dane
+            /*
+            var lokalizacja2 = new Lokalizacja()
+            {
+                Id = 2, Miasto = "Kraków", Ulica = "Chopina 2", Wojewodztwo = "Małopolskie"
+            };
+            var czlonekKlubu2 = new CzlonekKlubu()
+            {
+                Id = 2, Imie = "Mateusz", Nazwisko = "Kowalski", LokalizacjaId = 2, DataUrodzenia = DateTime.Today
+            };
+            var film1 = new Film()
+            {
+                Id = 1, Tytul = "Shrek", Ocena = 4.89f
+            };
+            var film2 = new Film()
+            {
+                Id = 2,
+                Tytul = "Pluton",
+                Ocena = 5.00f
+            };
+            var film3 = new Film()
+            {
+                Id = 3,
+                Tytul = "Taxi 2",
+                Ocena = 2.51f
+            };
+            var ulub1 = new UlubioneFilmy()
+            {
+                Id = 1, CzlonekKlubuId = 1, FilmId = 1
+            };
+            var ulub2 = new UlubioneFilmy()
+            {
+                Id = 2,
+                CzlonekKlubuId = 1,
+                FilmId = 3
+            };
+            var ulub3 = new UlubioneFilmy()
+            {
+                Id = 3,
+                CzlonekKlubuId = 2,
+                FilmId = 2
+            };
+
+            db.Lokalizacja.Add(lokalizacja2);
+            db.CzlonekKlubu.Add(czlonekKlubu2);
+            db.Filmy.Add(film1);
+            db.Filmy.Add(film2);
+            db.Filmy.Add(film3);
+            db.UlubioneFilmy.Add(ulub1);
+            db.UlubioneFilmy.Add(ulub2);
+            db.UlubioneFilmy.Add(ulub3);
+            db.SaveChanges();
+            */
+            #endregion
+
             /*var cz1 = db.CzlonekKlubu.Find(1);
             Console.WriteLine($"Imie: {cz1.Imie} Nazwisko: {cz1.Nazwisko}");
             Console.WriteLine("Ulubione filmy: ");
@@ -136,11 +208,12 @@ namespace Aplikacja
             foreach (var ulubioneFilmy in cz2.UlubioneFilmy)
             {
                 Console.WriteLine($"{ulubioneFilmy.Film.Tytul}");
-            }*/
-
+            }
+            */
 
             //Wykonanie dowolnego SQL
-            /*var sql =
+            /*
+            var sql =
                 "select Imie, Nazwisko, Miasto, LokalizacjaId from [orm.CzlonekKlubu] inner join [orm.Lokalizacja] on [orm.CzlonekKlubu].Id = [orm.Lokalizacja].Id";
             var reader = db.RawSql(sql);
             while (reader.Read())
@@ -148,9 +221,12 @@ namespace Aplikacja
                 Console.WriteLine($"Imie: {reader.GetString(0)} Nazwisko: {reader.GetString(1)}" +
                                   $" Miasto: {reader.GetString(2)} Id lokalizacji: {reader.GetInt32(3)}");
             }
-            reader.Close()*/
 
+            reader.Close();
 
+            var wynik = db.RawSql<Wynik>("SELECT COUNT(*) FROM [orm.CzlonekKlubu]");
+            Console.WriteLine($"Ilość wierszy w tabeli orm.CzlonekKlubu: {wynik[0].liczba}");
+            */
 
             db.Disconnect();
             Console.ReadKey();
