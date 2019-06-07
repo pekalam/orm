@@ -9,7 +9,6 @@ namespace SimpleORM.Providers.MsSql
     public class MsSqlDeleteBuilder
     {
         private EntityEntry _entityEntry;
-        public MsSqlDeleteBuilder(){}
 
         public MsSqlDeleteBuilder With(EntityEntry entityEntry)
         {
@@ -25,7 +24,7 @@ namespace SimpleORM.Providers.MsSql
             if (!string.IsNullOrEmpty(pk))
             {
                 var value = EntityFieldAttributeReader.ReadEntityPrimaryKeyValue(_entityEntry.TrackedEntity);
-                sql.Append($"{pk}={value}");
+                sql.Append($"[{pk}]='{value}'");
             }
             else
             {
@@ -34,10 +33,10 @@ namespace SimpleORM.Providers.MsSql
                 {
                     var value = _entityEntry.FieldValue(pair.Key);
                     if(i != _entityEntry.TableMetadata.EntityPropertyNameToType.Count)
-                        sql.Append($"{pair.Key}='{value}' AND ");
+                        sql.Append($"[{pair.Key}]='{value}' AND ");
                     else
                     {
-                        sql.Append($"{pair.Key}='{value}'");
+                        sql.Append($"[{pair.Key}]='{value}'");
                     }
                     i++;
                 }

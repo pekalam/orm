@@ -60,6 +60,7 @@
     <Compile Include="Attributes\Entity.cs" />
     <Compile Include="Attributes\IEntityFieldAttribute.cs" />
     <Compile Include="Attributes\ManyToOne.cs" />
+    <Compile Include="Attributes\NotNull.cs" />
     <Compile Include="Attributes\OnDelete.cs" />
     <Compile Include="Attributes\OnUpdate.cs" />
     <Compile Include="Database.cs" />

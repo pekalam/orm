@@ -16,6 +16,7 @@ namespace SimpleORM.Tests.MsSqlProviderTests
             [PrimaryKey]
             public int Id { get; set; }
             public string Str { get; set; }
+            public DateTime Date { get; set; }
         }
 
         [Entity]
@@ -35,7 +36,7 @@ namespace SimpleORM.Tests.MsSqlProviderTests
         public void InsertBuilder_returns_valid_sql()
         {
             var db = new Db();
-            var ent = new Ent(){Id = 1, Str = "AS"};
+            var ent = new Ent(){Id = 1, Str = "AS", Date = DateTime.Now};
             var entry = db.Ents.Add(ent);
             var insertBuilder = new MsSqlInsertBuilder();
 

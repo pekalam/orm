@@ -34,16 +34,8 @@ namespace SimpleORM.Providers.MsSql
             foreach (var entityTrackedField in entityTrackedFields)
             {
                 var name = entityTrackedField.Key;
-                var type = entityTrackedField.Value;
                 var value = _entityEntry.FieldValue(name);
-                if (type == typeof(string))
-                {
-                    sql.Append($"[{name}]='{value}'");
-                }
-                else
-                {
-                    sql.Append($"[{name}]={value}");
-                }
+                sql.Append($"[{name}]='{value}'");
                 if (i != entityTrackedFields.Count)
                     sql.Append(", ");
 
@@ -56,14 +48,7 @@ namespace SimpleORM.Providers.MsSql
             if (!string.IsNullOrEmpty(primaryKeyName))
             {
                 var primaryKey = _entityEntry.FieldValue(primaryKeyName);
-                if (entityTrackedFields[primaryKeyName] == typeof(string))
-                {
-                    sql.Append($"[{primaryKeyName}]='{primaryKey}'");
-                }
-                else
-                {
-                    sql.Append($"[{primaryKeyName}]={primaryKey}");
-                }
+                sql.Append($"[{primaryKeyName}]='{primaryKey}'");
             }
             else
             {
@@ -72,7 +57,7 @@ namespace SimpleORM.Providers.MsSql
                 {
                     var name = entityTrackedField.Key;
                     var value = _entityEntry.OriginalFieldValue(name);
-                    sql.Append($"[{name}]={value}");
+                    sql.Append($"[{name}]='{value}'");
                     if (i != entityTrackedFields.Count)
                         sql.Append(" AND ");
                     i++;

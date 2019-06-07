@@ -39,6 +39,7 @@ namespace SimpleORM.UsageTests
             [PrimaryKey]
             public int Id { get; set; }
             public string Name { get; set; }
+            public DateTime DateOfBirth { get; set; }
         }
 
         [Entity]
@@ -138,16 +139,16 @@ namespace SimpleORM.UsageTests
             var db = CreateDatabase();
             db.EnsureCreated();
 
-            var cinema = new Cinema() {Id = 1, Name = "Helios"};
-            db.Cinema.Add(cinema);
+            var actor = new Actor() {DateOfBirth = DateTime.Today, Id = 1, Name = "Jan'"};
+            db.Actors.Add(actor);
             db.SaveChanges();
 
-            var reader = db.RawSql("SELECT * FROM [orm.Cinema]");
+            var reader = db.RawSql("SELECT * FROM [orm.Actors]");
             var i = 0;
             while (reader.Read())
             {
                 i++;
-                TestContext.WriteLine($"{reader[0]} {reader[1]}");
+                TestContext.WriteLine($"{reader[0]} {reader[1]} {reader[2]}");
             }
 
             Assert.IsTrue(i != 0);
@@ -193,24 +194,23 @@ namespace SimpleORM.UsageTests
 
             var reader = db.RawSql("SELECT * FROM [orm.Cinema]");
             var i = 0;
-            var upd = "";
+            var updatedName = "";
             while (reader.Read())
             {
                 i++;
                 TestContext.WriteLine($"{reader[0]} {reader[1]}");
-                upd = reader[1].ToString();
+                updatedName = reader[1].ToString();
             }
             reader.Close();
 
             var cin = db.Cinema.Find(1);
-            cin.Name = "1000";
+            cin.Name = "1000'";
             db.Cinema.Update(cin);
             db.SaveChanges();
+            var cinema1 = db.Cinema.Find(1);
 
-            Assert.IsTrue(upd == "Multikino");
-
-            var c2 = db.Cinema.Find(1);
-            Assert.IsTrue(c2.Name == "1000");
+            Assert.IsTrue(updatedName == "Multikino");
+            Assert.IsTrue(cinema1.Name == "1000'");
         }
 
 

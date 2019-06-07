@@ -11,13 +11,15 @@ namespace SimpleORM.Providers.MsSql
         public static Dictionary<Type, string> ScalarTypeMap = new Dictionary<Type, string>()
         {
             [typeof(string)] = "text",
-            [typeof(int)] = "int"
+            [typeof(int)] = "int",
+            [typeof(DateTime)] = "datetime2"
         };
 
         public static Dictionary<Type, string> AttributeMap = new Dictionary<Type, string>()
         {
             [typeof(PrimaryKey)] = "PRIMARY KEY",
-            [typeof(AutoIncrement)] = "IDENTITY"
+            [typeof(AutoIncrement)] = "IDENTITY",
+            [typeof(NotNull)] = "NOT NULL"
         };
 
         public static List<string> OnUpdateDelete = new List<string>()
@@ -55,7 +57,7 @@ namespace SimpleORM.Providers.MsSql
                 // TODO: not scalar
                 var typeStr = MsSqlTypeMapping.ScalarTypeMap[_tableMetadata.EntityPropertyNameToType[name]];
                 // TODO: option
-                s.Append($"{typeStr} ");
+                s.Append($"{typeStr}");
 
                 if (_tableMetadata.EntityPropertyAttributes.ContainsKey(name))
                 {
@@ -106,7 +108,7 @@ namespace SimpleORM.Providers.MsSql
                             else
                             {
                                 var attrStr = MsSqlTypeMapping.AttributeMap[attribute];
-                                s.Append($"{attrStr} ");
+                                s.Append($" {attrStr}");
                             }
                         }
                         if(hasfk)
@@ -114,7 +116,7 @@ namespace SimpleORM.Providers.MsSql
 
                     }
                 }
-                s.AppendLine("NOT NULL,");
+                s.AppendLine(",");
             }
 
             if (fk.Length > 0)

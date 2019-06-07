@@ -10,17 +10,21 @@ namespace SimpleORM
 {
     public static class EntityEntryExtensions
     {
-        public static object FieldValue(this EntityEntry entityEntry, string propName)
+        private static string _SqlStr(object ob)
         {
-            return entityEntry.TrackedEntity.GetType().GetProperty(propName).GetValue(
-                entityEntry.TrackedEntity);
+            return ob.ToString().Replace("'", "''");
         }
 
-        public static object OriginalFieldValue(this EntityEntry entityEntry, string propName)
+        public static string FieldValue(this object obj, string propName)
         {
-            return entityEntry.TrackedEntity.GetType().GetProperty(propName).GetValue(
-                entityEntry.OriginalData);
+            return _SqlStr(obj.GetType().GetProperty(propName).GetValue(obj));
         }
+
+        public static string FieldValue(this EntityEntry entityEntry, string propName) =>
+            FieldValue(entityEntry.TrackedEntity, propName);
+
+        public static string OriginalFieldValue(this EntityEntry entityEntry, string propName) =>
+            FieldValue(entityEntry.OriginalData, propName);
 
     }
 
